@@ -14,17 +14,20 @@ class Cinema(object):
     
     def arrange(self, group):
         # print(f'group = {group}')
+        possible_seats = []
         for i in range(self.n):
             indices = self.count_seats(group, i)
             # print(indices)
             if indices != (-1, -1): # we found a seat
-                self.occupy_seats(group, indices[0], indices[1])
-                self.mark_unavailable(group, indices[0], indices[1])
-                
-                # for seat in self.seats:
-                #     print(''.join(seat))
-                # print()
-                break
+                possible_seats.append(indices)
+
+            self.occupy_seats(group, indices[0], indices[1])
+            self.mark_unavailable(group, indices[0], indices[1])
+            
+            # for seat in self.seats:
+            #     print(''.join(seat))
+            # print()
+            break
 
    
     def count_seats(self, group, i):
@@ -56,6 +59,17 @@ class Cinema(object):
         
         return False
 
+    def count_unavailable(self, group, i, j):
+        count = 0
+        for member in range(group):
+            for indices in neighbours_index: # check if seat within matrix bounds
+                if (self.n > i + indices[0] >= 0 and self.m > j + member + indices[1] >= 0):
+                    # print('neighbours clear')
+                    if self.occupied_seats[i + indices[0]][j + member + indices[1]] != 'x': # if nearby seats are occupied
+                        count += 1
+        
+        return count
+        
     def mark_unavailable(self, group, i, j):
         for member in range(group):
             for indices in neighbours_index: # check if seat within matrix bounds
