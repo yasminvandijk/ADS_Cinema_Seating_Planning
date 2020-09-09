@@ -6,20 +6,26 @@ class Cinema(object):
     def __init__(self, n, m, l):
         self.n = n
         self.m = m
-        self.seats = copy.copy(l)
-        self.occupied_seats = copy.copy(l)
+        self.seats = copy.deepcopy(l)
+        self.occupied_seats = copy.deepcopy(l)
     
     def __str__(self):
         print(self.seats)
     
     def arrange(self, group):
+        # print(f'group = {group}')
         for i in range(self.n):
             indices = self.count_seats(group, i)
             # print(indices)
             if indices != (-1, -1): # we found a seat
                 self.occupy_seats(group, indices[0], indices[1])
                 self.mark_unavailable(group, indices[0], indices[1])
-                print(self.seats)
+                
+                # for seat in self.seats:
+                #     print(''.join(seat))
+                # print()
+                break
+
    
     def count_seats(self, group, i):
         count = 0
@@ -74,9 +80,14 @@ if __name__ == '__main__':
     groups = list(map(int, input().split()))
     
     cinema = Cinema(n, m, l)
-    cinema.arrange(2)
-    cinema.arrange(1)
-    # print(cinema.occupied_seats)
+    
+    for i in range(len(groups) - 1, -1, -1):
+        while groups[i] > 0:
+            cinema.arrange(i + 1)
+            groups[i] -= 1
+
+    for seat in cinema.seats:
+        print(''.join(seat))
 
 
 
