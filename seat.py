@@ -13,7 +13,7 @@ class Cinema(object):
         print(self.seats)
     
     def print_seats(self):
-        for seat in self.seats:
+        for seat in self.occupied_seats:
             print(''.join(seat))
         print()
     
@@ -33,14 +33,19 @@ class Cinema(object):
         if best_count != None:
             self.occupy_seats(group, best_indices[0], best_indices[1])
             self.mark_unavailable(group, best_indices[0], best_indices[1])
-        
+            self.print_seats()
+
+            return True
+
+        # self.print_seats()
+        return False
 
    
     def count_seats(self, group, i):
         count = 0
         index = None
         for j in range(self.m): # 00, 01, 02, ...
-            if self.occupied_seats[i][j] == '1' and self.can_seat(i, j):
+            if self.occupied_seats[i][j] == '1':
                 if count == 0:
                     index = j
                 count += 1
@@ -48,7 +53,7 @@ class Cinema(object):
             if count >= group:
                 return (i, index)
 
-            if self.occupied_seats[i][j] == '0':
+            if self.occupied_seats[i][j] != '1':
                 count = 0
         # if count == self.m - 1:
         return (-1, -1)
@@ -101,12 +106,16 @@ if __name__ == '__main__':
     
     cinema = Cinema(n, m, l)
     
+    count = 0
     for i in range(len(groups) - 1, -1, -1):
+    # for i in range(len(groups)):
         while groups[i] > 0:
-            cinema.arrange(i + 1)
+            if cinema.arrange(i + 1):
+                count = count + i + 1
             groups[i] -= 1
 
     cinema.print_seats()
+    print(f'people seated: {count}')
 
 
 
