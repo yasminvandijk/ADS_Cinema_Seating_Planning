@@ -6,16 +6,16 @@ class Cinema(object):
     def __init__(self, n, m, l):
         self.n = n
         self.m = m
-        self.seats = copy.deepcopy(l)
+        self.output_seats = copy.deepcopy(l)
         self.occupied_seats = copy.deepcopy(l)
     
     def __str__(self):
-        print(self.seats)
+        print(self.output_seats)
     
     def print_seats(self):
         for seat in self.occupied_seats:
             print(''.join(seat))
-        print()
+        print()  
     
     def arrange(self, group):
         # print(f'group = {group}')
@@ -76,7 +76,7 @@ class Cinema(object):
             for indices in neighbours_index: # check if seat within matrix bounds
                 if (self.n > i + indices[0] >= 0 and self.m > j + member + indices[1] >= 0):
                     # print('neighbours clear')
-                    if self.occupied_seats[i + indices[0]][j + member + indices[1]] != 'x': # if nearby seats are occupied
+                    if self.occupied_seats[i + indices[0]][j + member + indices[1]] == '1': # if nearby seats are occupied
                         count += 1
         
         return count
@@ -86,14 +86,14 @@ class Cinema(object):
             for indices in neighbours_index: # check if seat within matrix bounds
                 if (self.n > i + indices[0] >= 0 and self.m > j + member + indices[1] >= 0):
                     # print('neighbours clear')
-                    if self.occupied_seats[i + indices[0]][j + member + indices[1]] != 'x': # if nearby seats are occupied
+                    if self.occupied_seats[i + indices[0]][j + member + indices[1]] == '1': # if nearby seats are occupied
                         self.occupied_seats[i + indices[0]][j + member + indices[1]] = '+'
-                        # print(self.seats)
+                        # print(self.output_seats)
     
     def occupy_seats(self, group, i, j):
         for member in range(group):
             self.occupied_seats[i][j + member] = 'x'
-            self.seats[i][j + member] = 'x'
+            self.output_seats[i][j + member] = 'x'
 
 
 if __name__ == '__main__':
