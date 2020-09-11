@@ -23,7 +23,7 @@ class Cinema(object):
         best_count = None
         for i in range(self.n):
             indices = self.count_seats(group, i)
-            print(indices)
+            # print(indices)
             if indices != (-1, -1): # we found a seat
                 unavailable_seats = self.count_unavailable(group, indices[0], indices[1])
                 if best_count == None or unavailable_seats < best_count:
@@ -95,6 +95,15 @@ class Cinema(object):
             self.occupied_seats[i,j + member] = 'x'
             self.output_seats[i,j + member] = 'x'
 
+def recalculate_indices(groups):
+    # print("group in", groups)
+    multiplied_groups = [groups[i] * (i + 1) for i in range(len(groups))]
+    # print(multiplied_groups)
+    
+    groups_indices1 = np.argsort(multiplied_groups)
+    print(f'group after recalculate: {groups_indices1}')
+
+    return np.copy(groups_indices1)
 
 if __name__ == '__main__':
     n = int(input())    # number of lines
@@ -105,15 +114,30 @@ if __name__ == '__main__':
        l[i] = [b for b in input()]
     groups = np.array(list(map(int, input().split())))
     
-    cinema = Cinema(n, m, l)
+    groups_indices = recalculate_indices(groups)
+    cinema = Cinema(n, m, l) 
     
     count = 0
-    for i in range(len(groups) - 1, -1, -1):
+    arranged = False
+    i = len(groups_indices) - 1
+    while i >= 0:
     # for i in range(len(groups)):
-        while groups[i] > 0:
-            if cinema.arrange(i + 1):
-                count = count + i + 1
-            groups[i] -= 1
+        if groups[groups_indices[i]] > 0:
+            if cinema.arrange(groups_indices[i] + 1):
+                count = count + groups_indices[i] + 1
+                # arranged = True
+           
+            groups[groups_indices[i]] -= 1
+            print("group before", groups_indices)
+            rec_groups_indices = recalculate_indices(groups)
+            print("recalculated group:", rec_groups_indices)
+            if np.array_equal (rec_groups_indices, groups_indices):
+                i = len(groups_indices)
+            else:
+                groups_indices = copy.deepcopy(rec_groups_indices)
+                print("changed group_indec:", groups_indices)
+        i -= 1    
+        #    arranged = False
 
     cinema.print_seats()
     print(f'people seated: {count}')
