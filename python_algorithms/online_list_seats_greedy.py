@@ -1,6 +1,3 @@
-# Implements implementation of a list of seats with greedy placement
-
-
 import numpy as np
 
 class Cinema(object):
@@ -21,29 +18,12 @@ class Cinema(object):
         for row in self.layout:
             print(''.join(row))
         print()
-
-    def printOutput(self):
-        """
-        prints the cinema to the terminal in the output specified as in the assignment
-        '0' for no seat, '1' for a seat that is not occupied
-        'x' for an occupied seat
-        """
-        print()
-        for row in self.layout:
-            rowStr = ''
-            for i in range(self.nrCols):
-                if (row[i] == '+'):
-                    rowStr = rowStr + '1'
-                else:
-                    rowStr = rowStr + row[i]
-            print(rowStr)
-        print()
     
     def initSeatList(self):
         for row in range(self.nrRows):
             self.seatList.append(dict())
             self.updateRowSeatList(row)
-    
+
     def updateRowSeatList(self, rowIndex: int):
         availableSeats = self.getAvailableSeats(rowIndex)
         self.seatList[rowIndex] = dict()
@@ -53,7 +33,7 @@ class Cinema(object):
                 self.seatList[rowIndex][seat[1]].append(seat[0])
             else:
                 self.seatList[rowIndex][seat[1]] = [seat[0]]
-
+    
     def updateRowsSeatList(self, rowIndex: int):
         if rowIndex > 0:
             self.updateRowSeatList(rowIndex - 1)
@@ -132,15 +112,15 @@ class Cinema(object):
         if (colIndex + groupSize + 1 < self.nrCols):
             self.markUnavailable(rowIndex, colIndex + groupSize + 1)
     
-    def findSeating(self, groupSize) -> bool:
+    def findSeating(self, groupSize: int) -> (int, int):
         """
         iteratively check each row until a row is found where this group fits
         places the group on that row as far to the left as possible
-        returns true if a the group is placed, false otherwise
+        returns (rowIndex + 1, colIndex + 1) if a the group is placed, (0, 0) otherwise
         """
         # check if group is smaller or equal to number of columns
         if (groupSize > self.nrCols):
-            return False
+            return (0, 0)
         
         for rowIndex in range(self.nrRows):
             if groupSize in self.seatList[rowIndex]:
@@ -153,9 +133,8 @@ class Cinema(object):
                     
                     self.updateRowsSeatList(rowIndex)
 
-                    # self.printCinema()
-                    return True
-        
+                    return (rowIndex + 1, colIndex + 1)
+
         # check for each row if group fits
         for y in range(nrRows):
             availableSeats = [x for x in self.getAvailableSeats(y) if x[1] >= groupSize]
@@ -166,9 +145,9 @@ class Cinema(object):
 
                 self.updateRowsSeatList(y)
                 #self.printCinema()
-                return True
+                return (y + 1, seating[0] + 1)
 
-        return False
+        return (0, 0)
 
 if __name__ == '__main__':
     # number of rows and columns
@@ -180,24 +159,25 @@ if __name__ == '__main__':
     for i in range(nrRows):
         layout[i] = [b for b in input()]
 
-    # number of groups for each group size
-    nrGroupsTotal = np.array([int(nr) for nr in input().split()])
+    # read in group sizes
+    groupSizes = np.array([int(nr) for nr in input().split()])
 
+    # number of groups in total for each group size
+    nrGroupsTotal = np.full((8), 0, dtype=int)
     # number of groups placed for each group size
-    nrGroupsPlaced = np.full((len(nrGroupsTotal)), 0, dtype=int)
+    nrGroupsPlaced = np.full((8), 0, dtype=int)
 
     cinema = Cinema(nrRows, nrCols, layout)
 
-    # loop over groups in descending group size
-    for index in reversed(range(len(nrGroupsTotal))):
-        for _ in range(nrGroupsTotal[index]):
-            if (cinema.findSeating(index + 1)):
-                nrGroupsPlaced[index] = nrGroupsPlaced[index] + 1
-            else:
-                break
-
-    # output
-    cinema.printOutput()
+    # try to place groups one by one
+    for groupSize in groupSizes:
+        if groupSize == 0:
+            break
+        (y, x) = cinema.findSeating(groupSize)
+        nrGroupsTotal[groupSize - 1] = nrGroupsTotal[groupSize - 1] + 1
+        if ((y, x) != (0, 0)):
+            nrGroupsPlaced[groupSize - 1] = nrGroupsPlaced[groupSize - 1] + 1
+        print(f'{y} {x}')
     
     # print some extra info
     cinema.printCinema()
@@ -206,7 +186,7 @@ if __name__ == '__main__':
 
     totalVisitors: int = 0
     totalPlaced: int = 0
-    
+
     for i in range(len(nrGroupsTotal)):
         totalVisitors = totalVisitors + nrGroupsTotal[i] * (i + 1)
         totalPlaced = totalPlaced + nrGroupsPlaced[i] * (i + 1)
