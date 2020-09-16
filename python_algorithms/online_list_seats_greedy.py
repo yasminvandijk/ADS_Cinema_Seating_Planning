@@ -122,10 +122,13 @@ class Cinema(object):
         if (groupSize > self.nrCols):
             return (0, 0)
         
+        seatFound = False
+
         for rowIndex in range(self.nrRows):
             if groupSize in self.seatList[rowIndex]:
                 if len(self.seatList[rowIndex][groupSize]) != 0:
                     print(f'exact number of {groupSize} seats found')
+                    seatFound = True
                     
                     # print(self.seatList[rowIndex][groupSize])
                     colIndex: int = self.seatList[rowIndex][groupSize][0]
@@ -134,6 +137,18 @@ class Cinema(object):
                     self.updateRowsSeatList(rowIndex)
 
                     return (rowIndex + 1, colIndex + 1)
+
+        if not seatFound:
+            for rowIndex in range(self.nrRows):
+                for group in sorted(self.seatList[rowIndex]):
+                    print(f'group: {group}')
+                    if group > groupSize and len(self.seatList[rowIndex][group]) != 0:
+                        colIndex: int = self.seatList[rowIndex][group][0]
+                        self.placeGroup(rowIndex, colIndex, groupSize)
+                        
+                        self.updateRowsSeatList(rowIndex)
+
+                        return (rowIndex + 1, colIndex + 1)
 
         # check for each row if group fits
         for y in range(nrRows):
