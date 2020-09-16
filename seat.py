@@ -1,21 +1,21 @@
 import copy
-
+import numpy as np
 neighbours_index = [[-1, -1], [-1, 0], [-1, 1], [0, -2], [0, -1], [0, 1], [0, 2], [1, -1], [1, 0], [1, 1]]
 
 class Cinema(object):
     def __init__(self, n, m, l):
         self.n = n
         self.m = m
-        self.seats = copy.deepcopy(l)
-        self.occupied_seats = copy.deepcopy(l)
+        self.output_seats = np.copy(l)
+        self.occupied_seats = np.copy(l)
     
     def __str__(self):
-        print(self.seats)
+        print(self.output_seats)
     
     def print_seats(self):
         for seat in self.occupied_seats:
             print(''.join(seat))
-        print()
+        print()  
     
     def arrange(self, group):
         # print(f'group = {group}')
@@ -45,7 +45,7 @@ class Cinema(object):
         count = 0
         index = None
         for j in range(self.m): # 00, 01, 02, ...
-            if self.occupied_seats[i][j] == '1':
+            if self.occupied_seats[i,j] == '1':
                 if count == 0:
                     index = j
                 count += 1
@@ -53,17 +53,17 @@ class Cinema(object):
             if count >= group:
                 return (i, index)
 
-            if self.occupied_seats[i][j] != '1':
+            if self.occupied_seats[i,j] != '1':
                 count = 0
         # if count == self.m - 1:
         return (-1, -1)
 
     def can_seat(self, i, j): # check if seat and indices i, j is available
-        if self.occupied_seats[i][j] == '1':
+        if self.occupied_seats[i,j] == '1':
             for indices in neighbours_index: # check if seat within matrix bounds
                 if (self.n > i + indices[0] > 0 and self.m > j + indices[1] > 0):
                     # print('neighbours clear')
-                    if self.occupied_seats[i + indices[0]][j + indices[1]] == 'x': # if nearby seats are occupied
+                    if self.occupied_seats[i + indices[0],j + indices[1]] == 'x': # if nearby seats are occupied
                         # print('')
                         return False
             return True
@@ -76,7 +76,7 @@ class Cinema(object):
             for indices in neighbours_index: # check if seat within matrix bounds
                 if (self.n > i + indices[0] >= 0 and self.m > j + member + indices[1] >= 0):
                     # print('neighbours clear')
-                    if self.occupied_seats[i + indices[0]][j + member + indices[1]] != 'x': # if nearby seats are occupied
+                    if self.occupied_seats[i + indices[0],j + member + indices[1]] == '1': # if nearby seats are occupied
                         count += 1
         
         return count
@@ -86,69 +86,58 @@ class Cinema(object):
             for indices in neighbours_index: # check if seat within matrix bounds
                 if (self.n > i + indices[0] >= 0 and self.m > j + member + indices[1] >= 0):
                     # print('neighbours clear')
-                    if self.occupied_seats[i + indices[0]][j + member + indices[1]] != 'x': # if nearby seats are occupied
-                        self.occupied_seats[i + indices[0]][j + member + indices[1]] = '+'
-                        # print(self.seats)
+                    if self.occupied_seats[i + indices[0],j + member + indices[1]] == '1': # if nearby seats are occupied
+                        self.occupied_seats[i + indices[0],j + member + indices[1]] = '+'
+                        # print(self.output_seats)
     
     def occupy_seats(self, group, i, j):
         for member in range(group):
-            self.occupied_seats[i][j + member] = 'x'
-            self.seats[i][j + member] = 'x'
+            self.occupied_seats[i,j + member] = 'x'
+            self.output_seats[i,j + member] = 'x'
 
+def recalculate_indices(groups):
+    # print("group in", groups)
+    multiplied_groups = [groups[i] * (i + 1) for i in range(len(groups))]
+    # print(multiplied_groups)
+    
+    groups_indices1 = np.argsort(multiplied_groups)
+    print(f'group after recalculate: {groups_indices1}')
+
+    return np.copy(groups_indices1)
 
 if __name__ == '__main__':
     n = int(input())    # number of lines
     m = int(input())    # number of columns
-    l = []
-    for _ in range(n):
-        l.append([b for b in input()])
-    groups = list(map(int, input().split()))
+    l = np.empty((n, m), dtype = str)
+    groups_indices = np.array([])
+    for i in range(n):
+       l[i] = [b for b in input()]
+    groups = np.array(list(map(int, input().split())))
     
-    cinema = Cinema(n, m, l)
+    groups_indices = recalculate_indices(groups)
+    cinema = Cinema(n, m, l) 
     
     count = 0
-    for i in range(len(groups) - 1, -1, -1):
+    arranged = False
+    i = len(groups_indices) - 1
+    while i >= 0:
     # for i in range(len(groups)):
-        while groups[i] > 0:
-            if cinema.arrange(i + 1):
-                count = count + i + 1
-            groups[i] -= 1
+        if groups[groups_indices[i]] > 0:
+            if cinema.arrange(groups_indices[i] + 1):
+                count = count + groups_indices[i] + 1
+                # arranged = True
+           
+            groups[groups_indices[i]] -= 1
+            print("group before", groups_indices)
+            rec_groups_indices = recalculate_indices(groups)
+            print("recalculated group:", rec_groups_indices)
+            if np.array_equal (rec_groups_indices, groups_indices):
+                i = len(groups_indices)
+            else:
+                groups_indices = copy.deepcopy(rec_groups_indices)
+                print("changed group_indec:", groups_indices)
+        i -= 1    
+        #    arranged = False
 
     cinema.print_seats()
     print(f'people seated: {count}')
-
-
-
- # def arrange(self, group, n_group, i, j):  # here comes the strategy implementation
-    #     print(f'i = {i}, j = {j}, n_group = {n_group}')
-    #     # print('here')
-    #     if n_group == 0:    # if we sat everyone
-    #         print('sat all')
-    #         # return True
-    #     # if not self.can_seat(i, j) and n_group > 0: # if there are no more spaces available to finish seating everyone
-    #     #     return False
-    #     if i == self.n and j == self.m and n_group > 0:
-    #         print('could not seat')
-    #         return
-    #         # return False
-    #     # print('here2')
-        
-    #     if self.can_seat(i, j):
-    #         self.occupied_seats[i][j] = 'x'
-    #         n_group -= 1
-    #         print('can seat')
-    #         if j + 1 >= self.n: # if we reached the end of the line, wrap around
-    #             print('endline')
-    #             if n_group > 0:
-    #                 n_group = group
-    #         self.arrange(group, n_group, i + 1, 0)
-    #         self.occupied_seats[i][j] = '1'
-    #         print('deoccupy')
-    #     else:
-    #         # print('not endline')
-    #         self.arrange(group, n_group, i, j + 1)
-        
-        # if self.occupied_seats[i][j] == 'x':
-            
-            # n_group += 1
-        # print('here3')
