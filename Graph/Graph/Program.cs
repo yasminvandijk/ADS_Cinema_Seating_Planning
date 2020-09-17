@@ -56,7 +56,7 @@ namespace DAGALG
             //int[] Aint = Array.ConvertAll(A, c => (int)Char.GetNumericValue(c));
             graph.inputs = input;
             Console.WriteLine();
-            //graph = Firstfit(input, graph);
+            graph = Fit(input, graph);
             graph.PrintGraph();
 
 
@@ -69,21 +69,21 @@ namespace DAGALG
             //graph.GetTranspose();
         }
 
-        public static Graph Firstfit(int[] inputs, Graph graph)
+        public static Graph Fit(int[] inputs, Graph graph)
         {
             Node node = graph.nodes[0, 0];
             int go = 0;
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i <  graph.columns; i++)
             {
-                if (i < graph.columns)
+               for (int j = 0; j <  graph.rows; j++)
                 {
-                    if (graph.nodes[0, i].isSeat)
+                    if (graph.nodes[j, i].isSeat && graph.nodes[j,i].Blocked == false && graph.nodes[j,i].Occupied == false)
                     {
-                        graph.nodes[0, i].Occupied = true;
-                        go++;
+                        graph.nodes[j, i].Occupied = true;
+                        Node[] n = new Node[1];
+                        n[0] = graph.nodes[j, i];
+                        graph = Overlap(n, graph);
                     }
-
-                    else break;
                 }
 
 
@@ -91,21 +91,23 @@ namespace DAGALG
 
             return graph;
         }
-        public static int Overlapcount(Node[] nodes, Graph gra)
+
+        ///registers the blocked seats
+        public static Graph Overlap(Node[] nodes, Graph gra)
         {
             int go = 0;
             for (int i = 0; i < nodes.Length; i++)
             {
                 for (int j = 0; j < gra.nodes[nodes[i].idx, nodes[i].idy].edges.Count; j++)
                 {
-                    if (gra.nodes[nodes[j].idx, nodes[j].idy].isSeat) go++;
+                    if (gra.nodes[nodes[i].edges[j].idx, nodes[i].edges[j].idy].isSeat) gra.nodes[nodes[i].edges[j].idx, nodes[i].edges[j].idy].Blocked = true;
                 }
 
             }
-            return go;
+            return gra;
         }
 
-
+        }
 
     class Graph
     {
@@ -162,6 +164,8 @@ namespace DAGALG
             {
                     if (nodes[i,j].Occupied == true)
                         Console.Write("x ");
+                    else if (nodes[i,j].Blocked == true)
+                        Console.Write("+ ");
                     else if (nodes[i, j].isSeat == true)
                         Console.Write("1 ");
                     else Console.Write("0 ");
@@ -178,6 +182,7 @@ namespace DAGALG
         public int id;
         public bool isSeat = false;
         public bool Occupied;
+        public bool Blocked;
         public List<Node> edges;
         public Node(int i, int j, int id)
         {
