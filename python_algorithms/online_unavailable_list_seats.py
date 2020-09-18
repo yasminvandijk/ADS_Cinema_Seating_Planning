@@ -1,5 +1,3 @@
-# Implements online optimisation for placing people in the first available seating that creates the least amount of unavailable seats around it
-
 import numpy as np
 
 class Cinema(object):
@@ -108,6 +106,7 @@ class Cinema(object):
 
         return count
         
+
     def placeGroup(self, rowIndex: int, colIndex: int, groupSize: int):
         """
         set occupied seats to 'x' and seats that have become unavailable to '+'
@@ -155,27 +154,44 @@ class Cinema(object):
         if (groupSize > self.nrCols):
             return (0, 0)
         
-        leastUnavailableSeats: int = None
-        leastUnavailableSeatsIndex: (int, int) = None
+        seatFound = False
 
-        # check for each row if group fits
-        for y in range(nrRows):
-            availableSeats = [x for x in self.getAvailableSeats(y) if x[1] >= groupSize]
-            if (len(availableSeats) > 0):
-                # a possible seating is found, take the first seating and place group there
-                seating: (int, int) = availableSeats[0]
-                nrUnavailableSeats = self.countUnavailableSeats(y, seating[0], groupSize)
-                if leastUnavailableSeats is None or nrUnavailableSeats < leastUnavailableSeats:
-                    leastUnavailableSeats = nrUnavailableSeats
-                    leastUnavailableSeatsIndex = (y, seating[0])
+        for rowIndex in range(self.nrRows):
+            if groupSize in self.seatList[rowIndex]:
+                if len(self.seatList[rowIndex][groupSize]) != 0:
+                    print(f'exact number of {groupSize} seats found')
+                    seatFound = True
+                    
+                    # print(self.seatList[rowIndex][groupSize])
+                    colIndex: int = self.seatList[rowIndex][groupSize][0]
+                    self.placeGroup(rowIndex, colIndex, groupSize)
+                    
+                    self.updateRowsSeatList(rowIndex)
 
-        if leastUnavailableSeats is not None:
-            self.placeGroup(leastUnavailableSeatsIndex[0], leastUnavailableSeatsIndex[1], groupSize)
+                    return (rowIndex + 1, colIndex + 1)
 
-            self.updateRowsSeatList(leastUnavailableSeatsIndex[0])
-            # self.printCinema()
-            return (leastUnavailableSeatsIndex[0] + 1, leastUnavailableSeatsIndex[1] + 1)
+        if not seatFound:
+            leastUnavailableSeats: int = None
+            leastUnavailableSeatsIndex: (int, int) = None
 
+            # check for each row if group fits
+            for y in range(nrRows):
+                availableSeats = [x for x in self.getAvailableSeats(y) if x[1] >= groupSize]
+                if (len(availableSeats) > 0):
+                    # a possible seating is found, take the first seating and place group there
+                    seating: (int, int) = availableSeats[0]
+                    nrUnavailableSeats = self.countUnavailableSeats(y, seating[0], groupSize)
+                    if leastUnavailableSeats is None or nrUnavailableSeats < leastUnavailableSeats:
+                        leastUnavailableSeats = nrUnavailableSeats
+                        leastUnavailableSeatsIndex = (y, seating[0])
+
+            if leastUnavailableSeats is not None:
+                self.placeGroup(leastUnavailableSeatsIndex[0], leastUnavailableSeatsIndex[1], groupSize)
+
+                self.updateRowsSeatList(leastUnavailableSeatsIndex[0])
+                # self.printCinema()
+                return (leastUnavailableSeatsIndex[0] + 1, leastUnavailableSeatsIndex[1] + 1)
+        
         return (0, 0)
 
 if __name__ == '__main__':
