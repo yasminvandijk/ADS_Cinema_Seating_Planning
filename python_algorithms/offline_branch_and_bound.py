@@ -1,9 +1,35 @@
 # branch and bound: (https://www.geeksforgeeks.org/8-puzzle-problem-using-branch-and-bound/)
 # priority queue (https://docs.python.org/3/library/queue.html#queue.PriorityQueue)
 
+"""
+branch and bound strategy:
+start with an empty cinema and all groups that still need to be placed, this is the first 
+partial solution with a priority score equal to it's total number of available seats
+put this partial solution on a priority queue sorted on descending priority score
+
+create new partial solutions by taking the first item of the priority queue and looping 
+over all the groupsizes for which groups still need to be placed
+for each groupsize; add a new partial solution with a group of that size placed 
+(at a bruted forced best place?),
+and a priority score equal to the total number of people placed so far 
+plus the total number of remaining available seats
+
+keep track of the best solution so far, by checking the total number of people placed so far
+bound partial solutions by checking if the total number of people placed plus the total number 
+of remaining available places is less than the maximum number of people placed in the best 
+solution we have found so far
+if this is the case, this solution can not be better than the best solution we have found so far
+no matter how we fill the remaining available seats
+this is because the maximum number of people that could be placed can not exceed the number of 
+people placed so far plus the number of available remaining seats
+this means we do not have to continue branching this partial solution
+"""
+
 import numpy as np
-from queue import PriorityQueue
 import copy
+from queue import PriorityQueue
+from dataclasses import dataclass, field
+from typing import Any
 
 class Cinema(object):
     def __init__(self, nrRows: int, nrCols: int, layout: np.array):
@@ -11,9 +37,21 @@ class Cinema(object):
         self.nrCols = nrCols
         self.layout = layout
         self.totalPlaced = 0
-        self.totalUnavailablePlaces = 0
+        self.totalRemainingPlaces = self.countRemainingSeats()
 
-    def printCinema(self):
+    def countRemainingSeats(self) -> int:
+        """
+        returns the total number of remaining available seats;
+        the total number of seats marked as '1'
+        """
+        result: int = 0
+        for row in self.layout:
+            for seat in row:
+                if (seat == '1'):
+                    result += 1
+        return result
+    
+    def printCinema(self) -> None:
         """
         prints the cinema to the terminal
         '0' for no seat, '1' for an available seat,
@@ -24,7 +62,7 @@ class Cinema(object):
             print(''.join(row))
         print()
 
-    def printOutput(self):
+    def printOutput(self) -> None:
         """
         prints the cinema to the terminal in the output specified as in the assignment
         '0' for no seat, '1' for a seat that is not occupied
@@ -35,17 +73,19 @@ class Cinema(object):
             rowStr = ''
             for i in range(self.nrCols):
                 if (row[i] == '+'):
-                    rowStr = rowStr + '1'
+                    rowStr += '1'
                 else:
-                    rowStr = rowStr + row[i]
+                    rowStr += row[i]
             print(rowStr)
         print()
     
-    def ratio(self) -> float:
-        if (self.totalUnavailablePlaces == 0):
-            return 0
-
-        return self.totalPlaced / self.totalUnavailablePlaces
+    def score(self) -> int:
+        """
+        returns the total number of people placed plus the total number of remaining available seats
+        this score is used as an upper bound; the total number of people placed can not exceed this score
+        if already placed groups remain seated and only new groups get placed
+        """
+        return self.totalPlaced + self.totalRemainingPlaces
         
     def getAvailableSeats(self, rowIndex: int) -> [(int, int)]:
         """
@@ -66,21 +106,20 @@ class Cinema(object):
                 nrSeats = nrSeats + 1
 
             if (nrSeats > 0):
-                result.append((rowIndex, startIndex, nrSeats))
+                result.append((startIndex, nrSeats))
             colIndex = colIndex + 1
         
         return result
     
-    def markUnavailable(self, rowIndex: int, colIndex: int) -> int:
+    def markUnavailable(self, rowIndex: int, colIndex: int) -> None:
         """
         sets an empty, available seat ('1') to an unavailable seat ('+')
-        doesn't check indexes for array bounds
-        return 1 if a seat becomes unavailable, 0 otherwise
+        warning: doesn't check indexes for array bounds;
+        decrements total number of remaining available seats if a seat becomes unavailable
         """
         if (self.layout[rowIndex, colIndex] == '1'):
             self.layout[rowIndex, colIndex] = '+'
-            return 1
-        return 0
+            self.totalRemainingPlaces -= 1
     
     def placeGroup(self, rowIndex: int, colIndex: int, groupSize: int) -> None:
         """
@@ -93,102 +132,107 @@ class Cinema(object):
         # unavailable seats - one row above
         if (rowIndex > 0):
             for i in range(groupSize):
-                self.totalUnavailablePlaces += self.markUnavailable(rowIndex - 1, colIndex + i)
+                self.markUnavailable(rowIndex - 1, colIndex + i)
             if (colIndex > 0):
-                self.totalUnavailablePlaces += self.markUnavailable(rowIndex - 1, colIndex - 1)
+                self.markUnavailable(rowIndex - 1, colIndex - 1)
             if (colIndex + groupSize < self.nrCols):
-                self.totalUnavailablePlaces += self.markUnavailable(rowIndex - 1, colIndex + groupSize)
+                self.markUnavailable(rowIndex - 1, colIndex + groupSize)
         
         # unavailable seats - one row underneath
         if (rowIndex + 1 < self.nrRows):
             for i in range(groupSize):
-                self.totalUnavailablePlaces += self.markUnavailable(rowIndex + 1, colIndex + i)
+                self.markUnavailable(rowIndex + 1, colIndex + i)
             if (colIndex > 0):
-                self.totalUnavailablePlaces += self.markUnavailable(rowIndex + 1, colIndex - 1)
+                self.markUnavailable(rowIndex + 1, colIndex - 1)
             if (colIndex + groupSize < self.nrCols):
-                self.totalUnavailablePlaces += self.markUnavailable(rowIndex + 1, colIndex + groupSize)
+                self.markUnavailable(rowIndex + 1, colIndex + groupSize)
 
         # unavailable seats - left and right sides (2 seats each)
         if (colIndex > 0):
-            self.totalUnavailablePlaces += self.markUnavailable(rowIndex, colIndex - 1)
+            self.markUnavailable(rowIndex, colIndex - 1)
         if (colIndex > 1):
-            self.totalUnavailablePlaces += self.markUnavailable(rowIndex, colIndex - 2)
+            self.markUnavailable(rowIndex, colIndex - 2)
         if (colIndex + groupSize < self.nrCols):
-            self.totalUnavailablePlaces += self.markUnavailable(rowIndex, colIndex + groupSize)
+            self.markUnavailable(rowIndex, colIndex + groupSize)
         if (colIndex + groupSize + 1 < self.nrCols):
-            self.totalUnavailablePlaces += self.markUnavailable(rowIndex, colIndex + groupSize + 1)
-    
-    def findSeating(self, groupSize:int) -> list:
+            self.markUnavailable(rowIndex, colIndex + groupSize + 1)
+
+    def findSeating(self, groupSize) -> bool:
         """
         iteratively check each row until a row is found where this group fits
         places the group on that row as far to the left as possible
-        returns true if group is placed, false otherwise
+        returns true if a the group is placed, false otherwise
         """
         # check if group is smaller or equal to number of columns
         if (groupSize > self.nrCols):
             return False
         
-        availableSeats = []
         # check for each row if group fits
         for y in range(nrRows):
-            availableSeats.append(x for x in self.getAvailableSeats(y) if x[1] >= groupSize)
-            # if (len(availableSeats) > 0):
+            availableSeats = [x for x in self.getAvailableSeats(y) if x[1] >= groupSize]
+            if (len(availableSeats) > 0):
                 # a possible seating is found, take the first seating and place group there
+                seating: (int, int) = availableSeats[0]
+                self.placeGroup(y, seating[0], groupSize)
+                self.totalPlaced += groupSize
+                self.totalRemainingPlaces -= groupSize
+                return True
 
-                # allAvailableSeats.append(availableSeats)
-                
-                # seating: (int, int) = availableSeats[0]
-                # self.placeGroup(y, seating[0], groupSize)
-                # self.totalPlaced = groupSize
-
-                # return True
-                #self.printCinema()
-        return availableSeats
-
-    def seat(self, rowIndex: int, colIndex: int, groupSize: int):
-        self.placeGroup(rowIndex, colIndex, groupSize)
-        self.totalPlaced = groupSize
+        return False
 
 
-def solve(cinema: Cinema, nrGroupsTotal: np.array):
+
+@dataclass(order=True)
+class PrioritizedItem:
+    priority: int
+    item: (Cinema, np.array)=field(compare=False)
+
+
+
+def solve(cinema: Cinema, nrGroupsTotal: np.array) -> Cinema:
+    """
+    solve using branch and bound with a priority queue
+    """
+    # keep track of the best partial solution we have seen
+    bestCinema: Cinema = copy.deepcopy(cinema)
+    maxNrPlaced: int = 0
+    
+    # put the initial cinema as partial solution in the priority queue
+    # items in the queue are sorted ascending on the cinema's score
+    # we use negative score to ensure the partial solutions with the 
+    # highest score are taken from the queue first
     queue = PriorityQueue()
-    queue.put((0, (cinema, nrGroupsTotal)))
-
-    bestRatio: float = None
-    bestCinema: Cinema = None
-
+    initialItem = PrioritizedItem(-cinema.score(), (cinema, nrGroupsTotal))
+    queue.put(initialItem)
+    
     while not queue.empty():
-        _, (partialSolution, groups) = queue.get()
+        # get a partial solution from the queue
+        item = queue.get()
+        partialCinema = item.item[0]
+        nrGroupsRemaining = item.item[1]
+        
+        # loop over all group sizes
+        for groupIndex in reversed(range(len(nrGroupsRemaining))):
+            if (nrGroupsRemaining[groupIndex] > 0):
+                # bound: check if this solution is worth expanding
+                if (partialCinema.score() > maxNrPlaced):
+                    # branch: create new partial solutions
+                    cinemaCopy: Cinema = copy.deepcopy(partialCinema)
+                    if (cinemaCopy.findSeating(groupIndex + 1)):
+                        # new partial solution found
+                        nrGroupsRemainingCopy = copy.deepcopy(nrGroupsRemaining)
+                        nrGroupsRemainingCopy[groupIndex] -= 1
 
-        for groupIndex in range(len(groups)):
-            if groups[groupIndex] > 0:
-                print(f'group of {groupIndex + 1}')
-                newCinema = copy.deepcopy(partialSolution)
-                seats = newCinema.findSeating(groupIndex + 1)
-                if len(seats) > 0:
-                    groupsRemaining = copy.deepcopy(groups)
-                    groupsRemaining[groupIndex] -= 1
-                for seat in seats:
-                    print(seat)
-                    newCinema.seat(seat[0], seat[1], groupIndex + 1)
-                    ratio: float = newCinema.ratio()
-                    print(ratio)
-                    newCinema.printCinema()
-
-                    if bestRatio is None or ratio > bestRatio:
-                        print('better ratio')
-                        bestRatio = ratio
-                        bestCinema = copy.deepcopy(newCinema)
-                        queue.put((bestRatio, (copy.deepcopy(newCinema), copy.deepcopy(groupsRemaining))))
-                        # bestCinema.printCinema()
-
-        # loop over groupsizes
-        # create new partial solutions
-        # check whether it should be bound or added to queue
+                        # check if this partial solution is better than best solution seen so far
+                        if (cinemaCopy.totalPlaced > maxNrPlaced):
+                            bestCinema = copy.deepcopy(cinemaCopy)
+                            maxNrPlaced = cinemaCopy.totalPlaced
+                        
+                        # add partial solution to priority queue
+                        newPartialSolution = PrioritizedItem(-cinemaCopy.score(), (cinemaCopy, nrGroupsRemainingCopy))
+                        queue.put(newPartialSolution)
 
     return bestCinema
-        
-
 
 if __name__ == '__main__':
     # number of rows and columns
@@ -203,25 +247,14 @@ if __name__ == '__main__':
     # number of groups for each group size
     nrGroupsTotal = np.array([int(nr) for nr in input().split()])
 
-    # number of groups placed for each group size
-    nrGroupsPlaced = np.full((len(nrGroupsTotal)), 0, dtype=int)
-
     cinema = Cinema(nrRows, nrCols, layout)
 
-    # loop over groups in descending group size
-    bestCinema = solve(cinema, nrGroupsTotal)
+    bestSolution = solve(cinema, nrGroupsTotal)
 
-    # output
-    bestCinema.printOutput()
-    
-    # print some extra info
-    bestCinema.printCinema()
-    print(f'groups: {nrGroupsTotal}')
-    print(f'placed: {nrGroupsPlaced}')
+    bestSolution.printCinema()
 
     totalVisitors: int = 0
-
     for i in range(len(nrGroupsTotal)):
-        totalVisitors = totalVisitors + nrGroupsTotal[i] * (i + 1)
+        totalVisitors += nrGroupsTotal[i] * (i + 1)
     
-    print(f'placed: {bestCinema.totalPlaced} out of {totalVisitors}')
+    print(f'placed: {bestSolution.totalPlaced} out of {totalVisitors}')
