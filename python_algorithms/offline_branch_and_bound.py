@@ -44,6 +44,7 @@ class Cinema(object):
     def ratio(self) -> float:
         if (self.totalUnavailablePlaces == 0):
             return 0
+
         return self.totalPlaced / self.totalUnavailablePlaces
         
     def getAvailableSeats(self, rowIndex: int) -> [(int, int)]:
@@ -134,6 +135,7 @@ class Cinema(object):
                 # a possible seating is found, take the first seating and place group there
                 seating: (int, int) = availableSeats[0]
                 self.placeGroup(y, seating[0], groupSize)
+                self.totalPlaced = groupSize
 
                 return True
                 #self.printCinema()
@@ -142,24 +144,38 @@ class Cinema(object):
 
 def solve(cinema: Cinema, nrGroupsTotal: np.array):
     queue = PriorityQueue()
-    queue.put((cinema, nrGroupsTotal), 0)
+    queue.put((0, (cinema, nrGroupsTotal)))
+
+    bestRatio: float = None
+    bestCinema: Cinema = None
 
     while not queue.empty():
-        partialSolution, groups = queue.get()
+        _, (partialSolution, groups) = queue.get()
 
-        for groupIndex in len(groups):
+        for groupIndex in range(len(groups)):
             if groups[groupIndex] > 0:
-                newCinema = copy.deepcopy(cinema)
+                print(f'group of {groupIndex + 1}')
+                newCinema = copy.deepcopy(partialSolution)
                 if newCinema.findSeating(groupIndex + 1):
                     groupsRemaining = copy.deepcopy(groups)
                     groupsRemaining[groupIndex] -= 1
 
-                    ratio = 
+                    ratio: float = newCinema.ratio()
+                    print(ratio)
+                    newCinema.printCinema()
+
+                    if bestRatio is None or ratio > bestRatio:
+                        print('better ratio')
+                        bestRatio = ratio
+                        bestCinema = copy.deepcopy(newCinema)
+                        queue.put((bestRatio, (copy.deepcopy(newCinema), copy.deepcopy(groupsRemaining))))
+                        # bestCinema.printCinema()
 
         # loop over groupsizes
         # create new partial solutions
         # check whether it should be bound or added to queue
 
+    return bestCinema
         
 
 
@@ -182,26 +198,19 @@ if __name__ == '__main__':
     cinema = Cinema(nrRows, nrCols, layout)
 
     # loop over groups in descending group size
-    for index in reversed(range(len(nrGroupsTotal))):
-        for _ in range(nrGroupsTotal[index]):
-            if (cinema.findSeating(index + 1)):
-                nrGroupsPlaced[index] = nrGroupsPlaced[index] + 1
-            else:
-                break
+    bestCinema = solve(cinema, nrGroupsTotal)
 
     # output
-    cinema.printOutput()
+    bestCinema.printOutput()
     
     # print some extra info
-    cinema.printCinema()
+    bestCinema.printCinema()
     print(f'groups: {nrGroupsTotal}')
     print(f'placed: {nrGroupsPlaced}')
 
     totalVisitors: int = 0
-    totalPlaced: int = 0
-    
+
     for i in range(len(nrGroupsTotal)):
         totalVisitors = totalVisitors + nrGroupsTotal[i] * (i + 1)
-        totalPlaced = totalPlaced + nrGroupsPlaced[i] * (i + 1)
     
-    print(f'placed: {totalPlaced} out of {totalVisitors}')
+    print(f'placed: {bestCinema.totalPlaced} out of {totalVisitors}')
