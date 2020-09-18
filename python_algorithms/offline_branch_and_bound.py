@@ -66,7 +66,7 @@ class Cinema(object):
                 nrSeats = nrSeats + 1
 
             if (nrSeats > 0):
-                result.append((startIndex, nrSeats))
+                result.append((rowIndex, startIndex, nrSeats))
             colIndex = colIndex + 1
         
         return result
@@ -118,7 +118,7 @@ class Cinema(object):
         if (colIndex + groupSize + 1 < self.nrCols):
             self.totalUnavailablePlaces += self.markUnavailable(rowIndex, colIndex + groupSize + 1)
     
-    def findSeating(self, groupSize) -> bool:
+    def findSeating(self, groupSize:int) -> list:
         """
         iteratively check each row until a row is found where this group fits
         places the group on that row as far to the left as possible
@@ -128,19 +128,27 @@ class Cinema(object):
         if (groupSize > self.nrCols):
             return False
         
+        availableSeats = []
         # check for each row if group fits
         for y in range(nrRows):
-            availableSeats = [x for x in self.getAvailableSeats(y) if x[1] >= groupSize]
-            if (len(availableSeats) > 0):
+            availableSeats.append(x for x in self.getAvailableSeats(y) if x[1] >= groupSize)
+            # if (len(availableSeats) > 0):
                 # a possible seating is found, take the first seating and place group there
-                seating: (int, int) = availableSeats[0]
-                self.placeGroup(y, seating[0], groupSize)
-                self.totalPlaced = groupSize
 
-                return True
+                # allAvailableSeats.append(availableSeats)
+                
+                # seating: (int, int) = availableSeats[0]
+                # self.placeGroup(y, seating[0], groupSize)
+                # self.totalPlaced = groupSize
+
+                # return True
                 #self.printCinema()
+        return availableSeats
 
-        return False
+    def seat(self, rowIndex: int, colIndex: int, groupSize: int):
+        self.placeGroup(rowIndex, colIndex, groupSize)
+        self.totalPlaced = groupSize
+
 
 def solve(cinema: Cinema, nrGroupsTotal: np.array):
     queue = PriorityQueue()
@@ -156,10 +164,13 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array):
             if groups[groupIndex] > 0:
                 print(f'group of {groupIndex + 1}')
                 newCinema = copy.deepcopy(partialSolution)
-                if newCinema.findSeating(groupIndex + 1):
+                seats = newCinema.findSeating(groupIndex + 1)
+                if len(seats) > 0:
                     groupsRemaining = copy.deepcopy(groups)
                     groupsRemaining[groupIndex] -= 1
-
+                for seat in seats:
+                    print(seat)
+                    newCinema.seat(seat[0], seat[1], groupIndex + 1)
                     ratio: float = newCinema.ratio()
                     print(ratio)
                     newCinema.printCinema()
