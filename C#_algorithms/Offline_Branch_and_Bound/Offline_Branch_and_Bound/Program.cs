@@ -36,8 +36,10 @@ namespace Offline_Branch_and_Bound
         public Seat[,] layout;
         public int totalPlaced = 0;
         public int totalEmptySeats;
-        //Seatlist: List of Dictionaries where key = group size of chairs, value = index leftmost chair
-        public Dictionary<int, int>[] seatList = new Dictionary<int, int>[rows];
+        /// <summary>
+        /// List of Dictionaries where key = group size of chairs, value = index leftmost chair
+        /// </summary>
+        public Dictionary<int, int>[] seatList;
 
         public Cinema(int rows, int columns, Seat[,] layout)
         {
@@ -45,6 +47,7 @@ namespace Offline_Branch_and_Bound
             this.columns = columns;
             this.layout = layout;
             this.totalEmptySeats = countEmptySeats();
+            this.seatList = new Dictionary<int, int>[rows];
         }
 
         /// <summary>
