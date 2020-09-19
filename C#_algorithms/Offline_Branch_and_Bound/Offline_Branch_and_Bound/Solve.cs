@@ -27,8 +27,38 @@ namespace Offline_Branch_and_Bound
             {
                 PartialSolution partialSolution = queue.Get();
 
-                // TODO;
+                // loop over all groupSizes
+                for (int groupIndex = 0; groupIndex < partialSolution.nrGroupsRemaining.Length; groupIndex++)
+                {
+                    if (partialSolution.nrGroupsRemaining[groupIndex] > 0)
+                    {
+                        // bound; only check partial solution which could be better than the best solution found so far
+                        if (partialSolution.cinema.score() > maxNrPlaced)
+                        {
+                            // branch; create new partial solutions
+                            Cinema cinemaCopy = new Cinema(partialSolution.cinema);
+                            if (cinemaCopy.findSeating(groupIndex + 1))
+                            {
+                                // new partial solution found
+                                int[] nrGroupsRemainingCopy = (int[])partialSolution.nrGroupsRemaining.Clone();
+                                nrGroupsRemainingCopy[groupIndex]--;
+
+                                // check if this partial solution is better than best solution seen so far
+                                if (cinemaCopy.totalPlaced > maxNrPlaced)
+                                {
+                                    bestCinema = new Cinema(cinemaCopy);
+                                    maxNrPlaced = cinemaCopy.totalPlaced;
+                                }
+
+                                // add partial solution to the queue
+                                queue.Add(cinemaCopy.score(), new PartialSolution { cinema = cinemaCopy, nrGroupsRemaining = nrGroupsRemainingCopy });
+                            }
+                        }
+                    }
+                }
             }
+
+            return bestCinema;
         }
     }
 
