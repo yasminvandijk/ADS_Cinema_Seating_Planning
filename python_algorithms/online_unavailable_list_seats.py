@@ -106,7 +106,44 @@ class Cinema(object):
 
         return count
         
+    def countAllUnavailableSeats(self, rowIndex: int, colIndex: int, groupSize: int, nrSeats: int) -> (int, int):
+        lowestCount = None
+        bestColIndex = None
+        for column in range(colIndex, colIndex + nrSeats - groupSize + 1):
+            count = 0
+            if (rowIndex > 0):
+                for i in range(groupSize):
+                    count += 1
+                if (column > 0):
+                    count += 1
+                if (column + groupSize < self.nrCols):
+                    count += 1
+            
+            # unavailable seats - one row underneath
+            if (rowIndex + 1 < self.nrRows):
+                for i in range(groupSize):
+                    count += 1
+                if (column > 0):
+                    count += 1
+                if (column + groupSize < self.nrCols):
+                    count += 1
 
+            # unavailable seats - left and right sides (2 seats each)
+            if (column > 0):
+                count += 1
+            if (column > 1):
+                count += 1
+            if (column + groupSize < self.nrCols):
+                count += 1
+            if (column + groupSize + 1 < self.nrCols):
+                count += 1
+
+            if lowestCount is None or count < lowestCount:
+                lowestCount = count
+                bestColIndex = column
+
+        return (lowestCount, bestColIndex)
+    
     def placeGroup(self, rowIndex: int, colIndex: int, groupSize: int):
         """
         set occupied seats to 'x' and seats that have become unavailable to '+'
@@ -180,10 +217,11 @@ class Cinema(object):
                 if (len(availableSeats) > 0):
                     # a possible seating is found, take the first seating and place group there
                     seating: (int, int) = availableSeats[0]
-                    nrUnavailableSeats = self.countUnavailableSeats(y, seating[0], groupSize)
+                    nrUnavailableSeats, colIndex = self.countAllUnavailableSeats(y, seating[0], groupSize, seating[1])
+                    
                     if leastUnavailableSeats is None or nrUnavailableSeats < leastUnavailableSeats:
                         leastUnavailableSeats = nrUnavailableSeats
-                        leastUnavailableSeatsIndex = (y, seating[0])
+                        leastUnavailableSeatsIndex = (y, colIndex)
 
             if leastUnavailableSeats is not None:
                 self.placeGroup(leastUnavailableSeatsIndex[0], leastUnavailableSeatsIndex[1], groupSize)
