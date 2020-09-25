@@ -77,36 +77,43 @@ class Cinema(object):
         if (self.layout[rowIndex, colIndex] == '1'):
             self.layout[rowIndex, colIndex] = '+'
     
-    def countUnavailableSeats(self, rowIndex: int, colIndex: int, groupSize: int) -> int:
-        count = 0
-        if (rowIndex > 0):
-            for i in range(groupSize):
+    def countUnavailableSeats(self, rowIndex: int, colIndex: int, groupSize: int, nrSeats: int) -> (int, int):
+        lowestCount = None
+        bestColIndex = None
+        for column in range(colIndex, colIndex + nrSeats - groupSize + 1):
+            count = 0
+            if (rowIndex > 0):
+                for i in range(groupSize):
+                    count += 1
+                if (column > 0):
+                    count += 1
+                if (column + groupSize < self.nrCols):
+                    count += 1
+            
+            # unavailable seats - one row underneath
+            if (rowIndex + 1 < self.nrRows):
+                for i in range(groupSize):
+                    count += 1
+                if (column > 0):
+                    count += 1
+                if (column + groupSize < self.nrCols):
+                    count += 1
+
+            # unavailable seats - left and right sides (2 seats each)
+            if (column > 0):
                 count += 1
-            if (colIndex > 0):
-               count += 1
-            if (colIndex + groupSize < self.nrCols):
+            if (column > 1):
                 count += 1
-        
-        # unavailable seats - one row underneath
-        if (rowIndex + 1 < self.nrRows):
-            for i in range(groupSize):
+            if (column + groupSize < self.nrCols):
                 count += 1
-            if (colIndex > 0):
-                count += 1
-            if (colIndex + groupSize < self.nrCols):
+            if (column + groupSize + 1 < self.nrCols):
                 count += 1
 
-        # unavailable seats - left and right sides (2 seats each)
-        if (colIndex > 0):
-            count += 1
-        if (colIndex > 1):
-            count += 1
-        if (colIndex + groupSize < self.nrCols):
-            count += 1
-        if (colIndex + groupSize + 1 < self.nrCols):
-            count += 1
+            if lowestCount is None or count < lowestCount:
+                lowestCount = count
+                bestColIndex = column
 
-        return count
+        return (lowestCount, bestColIndex)
         
     def placeGroup(self, rowIndex: int, colIndex: int, groupSize: int):
         """
@@ -162,12 +169,12 @@ class Cinema(object):
         for y in range(nrRows):
             availableSeats = [x for x in self.getAvailableSeats(y) if x[1] >= groupSize]
             if (len(availableSeats) > 0):
-                # a possible seating is found, take the first seating and place group there
+                # a possible seating is found, take the best seating and place group there
                 seating: (int, int) = availableSeats[0]
-                nrUnavailableSeats = self.countUnavailableSeats(y, seating[0], groupSize)
+                nrUnavailableSeats, colIndex = self.countUnavailableSeats(y, seating[0], groupSize, seating[1])
                 if leastUnavailableSeats is None or nrUnavailableSeats < leastUnavailableSeats:
                     leastUnavailableSeats = nrUnavailableSeats
-                    leastUnavailableSeatsIndex = (y, seating[0])
+                    leastUnavailableSeatsIndex = (y, colIndex)
 
         if leastUnavailableSeats is not None:
             self.placeGroup(leastUnavailableSeatsIndex[0], leastUnavailableSeatsIndex[1], groupSize)
