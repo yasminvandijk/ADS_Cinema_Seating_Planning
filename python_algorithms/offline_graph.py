@@ -31,6 +31,7 @@ from queue import PriorityQueue
 from dataclasses import dataclass, field
 from typing import Any
 import networkx as nx
+from networkx.algorithms import approximation
 
 
 NRGROUPS = 8
@@ -76,7 +77,7 @@ class Cinema(object):
                                 self.graph.add_edge((groupSize1, indices1), (groupSize2, indices2))
                                 # add edge
                             
-        print(self.graph.edges)
+        # print(self.graph.edges)
 
     """
     
@@ -234,6 +235,8 @@ class Cinema(object):
             self.markUnavailable(rowIndex, colIndex + groupSize)
         if (colIndex + groupSize + 1 < self.nrCols):
             self.markUnavailable(rowIndex, colIndex + groupSize + 1)
+        
+        self.totalPlaced += groupSize
 
     def findSeating(self, groupSize) -> [(int, int)]:
         """
@@ -330,13 +333,20 @@ if __name__ == '__main__':
 
     cinema = Cinema(nrRows, nrCols, layout)
     cinema.createEdges()
+    solution = approximation.independent_set.maximum_independent_set(cinema.graph)
+    for group in solution:
+        cinema.placeGroup(group[1][0], group[1][1], group[0] + 1)
+        # print(cinema.layout)
+    
+    cinema.printCinema()
 
     # bestSolution = solve(cinema, nrGroupsTotal)
 
     # bestSolution.printCinema()
 
-    # totalVisitors: int = 0
-    # for i in range(len(nrGroupsTotal)):
-    #     totalVisitors += nrGroupsTotal[i] * (i + 1)
+    totalVisitors: int = 0
+    for i in range(len(nrGroupsTotal)):
+        totalVisitors += nrGroupsTotal[i] * (i + 1)
+        
     
-    # print(f'placed: {bestSolution.totalPlaced} out of {totalVisitors}')
+    print(f'placed: {cinema.totalPlaced} out of {totalVisitors}')
