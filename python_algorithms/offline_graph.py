@@ -51,7 +51,8 @@ class Cinema(object):
         for groupSize in range(NRGROUPS):
             seats = self.findSeating(groupSize + 1)
             for seat in seats:
-                self.graph.add_node((groupSize, seat), layer=groupSize)
+                self.graph.add_node((groupSize, seat))
+                # print(self.graph.nodes)
             layers.append(seats)
         
         return copy.deepcopy(layers)
@@ -59,22 +60,23 @@ class Cinema(object):
 
     def createEdges(self):
         # loop through all layers and check overlap for all the nodes in the graph layers
+        # print(self.graph.nodes)
         for groupSize1 in range(0, len(self.layers) - 1):
             for groupSize2 in range(1, len(self.layers)):
                 for indices1 in self.layers[groupSize1]:
                     for indices2 in self.layers[groupSize2]:
                         # if seats are on the same row, check if they're less than 2 columns apart
                         if indices1[0] == indices2[0]:
-                            if 2 + indices2[1] <= indices1[1] <= indices2[1] + groupSize2 + 2 and 2 + indices1[1] <= indices2[1] <= indices1[1] + groupSize1 + 2:
+                            if indices2[1] - 2 <= indices1[1] <= indices2[1] + groupSize2 + 2 and indices1[1] - 2 <= indices2[1] <= indices1[1] + groupSize1 + 2:
                                 self.graph.add_edge((groupSize1, indices1), (groupSize2, indices2))
                                 # add edge
                         # if seats are on adjacent rows, check if they're less than 1 column apart
                         elif abs(indices1[0] - indices2[0]) == 1: # don't check rows that are farther apart than 2 rows
-                            if 1 + indices1[1] <= indices2[1] <= indices1[1] + groupSize1 + 1 and 1 + indices2[1] <= indices1[1] <= indices2[1] + groupSize2 + 1:
+                            if indices1[1] - 1 <= indices2[1] <= indices1[1] + groupSize1 + 1 and indices2[1] - 1 <= indices1[1] <= indices2[1] + groupSize2 + 1:
                                 self.graph.add_edge((groupSize1, indices1), (groupSize2, indices2))
                                 # add edge
                             
-        print(list(self.graph.nodes))
+        print(self.graph.edges)
 
     """
     
