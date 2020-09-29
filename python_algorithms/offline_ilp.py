@@ -29,8 +29,6 @@ def createModel(nrRows, nrCols, layout, nrGroupsTotal):
             for j in range(i, NLAYERS):
                 for r in range(nrRows):
                     for c in range(nrCols):
-                        # model.addConstr((x[i, r, c] == 1) >> (x[j, r, c] == 0))
-                        # model.addConstr((x[j, r, c] == 1) >> (x[i, r, c] == 0))
                         for k in range(-2, 3):  # same row
                             try:
                                 model.addConstr((x[i, r, c] == 1) >> (x[j, r, c + k + i] == 0))
