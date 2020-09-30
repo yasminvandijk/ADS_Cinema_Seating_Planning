@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Offline_Branch_and_Bound
-{
+{/*
     public class Solve
     {
         /// <summary>
@@ -60,7 +60,7 @@ namespace Offline_Branch_and_Bound
 
             return bestCinema;
         }
-    }
+    }*/
 
     public class PartialSolution
     {
