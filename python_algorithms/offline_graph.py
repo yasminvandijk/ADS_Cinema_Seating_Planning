@@ -41,6 +41,7 @@ class Cinema(object):
         self.nrRows = nrRows
         self.nrCols = nrCols
         self.layout = layout
+        # self.layers
         # nodes in the graph are tuples of (groupSize, (rowIndex, colIndex))
         self.graph = nx.Graph()
         self.layers = self._initLayers()
@@ -51,8 +52,8 @@ class Cinema(object):
         layers = []
         for groupSize in range(NRGROUPS):
             seats = self.findSeating(groupSize + 1)
-            for seat in seats:
-                self.graph.add_node((groupSize, seat), weight = groupSize)
+            # for seat in seats:
+            #     self.graph.add_node((groupSize, seat), weight = groupSize)
                 # print(self.graph.nodes)
             layers.append(seats)
         
@@ -275,6 +276,17 @@ class PrioritizedItem:
     item: (Cinema, np.array)=field(compare=False)
 
 
+def getMaxWeightClique(cinema: Cinema):
+    cinema.createEdges()
+    complement = nx.complement(cinema.graph)
+    # print(len(complement.nodes))
+    for node in complement.nodes:
+        # print(complement.nodes[node])
+        complement.nodes[node]['weight'] = node[0] + 1
+    
+
+    return nx.algorithms.clique.max_weight_clique(complement)
+
 
 def solve(cinema: Cinema, nrGroupsTotal: np.array) -> Cinema:
     """
@@ -343,7 +355,7 @@ if __name__ == '__main__':
         complement.nodes[node]['weight'] = node[0] + 1
     
 
-    maxClique = nx.algorithms.clique.max_weight_clique(complement)
+    maxCliqueGraph = nx.algorithms.clique.max_weight_clique(complement)
     
     # groupNodes = []
     # allMaxNodes = sorted(complement.nodes, key = lambda x: complement.degree[x], reverse = True)
@@ -367,13 +379,13 @@ if __name__ == '__main__':
     # print(maxCliqueGraph.nodes)
 
 
-    print(maxClique)
+    # print(maxClique)
     # solution = approximation.independent_set.maximum_independent_set(cinema.graph)
 
-    # print(maxCliqueGraph.nodes)
-    # maxIndependentSet = nx.complement(maxCliqueGraph)
-    # print(maxIndependentSet.edges)
-    for group in maxClique[0]:
+    # print(maxCliqueGraph)
+    # maxIndependentSet = nx.complement(nx.Graph(maxCliqueGraph[0]))
+    # print(maxIndependentSet)
+    for group in maxCliqueGraph[0]:
         cinema.placeGroup(group[1][0], group[1][1], group[0] + 1)
         # print(cinema.layout)
     
