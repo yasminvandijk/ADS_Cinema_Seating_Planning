@@ -52,7 +52,7 @@ class Cinema(object):
         for groupSize in range(NRGROUPS):
             seats = self.findSeating(groupSize + 1)
             for seat in seats:
-                self.graph.add_node((groupSize, seat))
+                self.graph.add_node((groupSize, seat), weight = groupSize)
                 # print(self.graph.nodes)
             layers.append(seats)
         
@@ -333,8 +333,44 @@ if __name__ == '__main__':
 
     cinema = Cinema(nrRows, nrCols, layout)
     cinema.createEdges()
-    solution = approximation.independent_set.maximum_independent_set(cinema.graph)
-    for group in solution:
+    complement = nx.complement(cinema.graph)
+    # print(len(complement.nodes))
+    for node in complement.nodes:
+        # print(complement.nodes[node])
+        complement.nodes[node]['weight'] = node[0] + 1
+    
+
+    maxClique = nx.algorithms.clique.max_weight_clique(complement)
+    
+    # groupNodes = []
+    # allMaxNodes = sorted(complement.nodes, key = lambda x: complement.degree[x], reverse = True)
+    # for nrGroup in range(len(nrGroupsTotal)):
+    #     # for node in allMaxNodes:
+    #     #     print(complement.degree[node])
+    #     maxGroupNodes = [maxNode for maxNode in allMaxNodes if maxNode[0] == nrGroup]
+    #     # print(maxGroupNodes)
+    #     for i in range(nrGroupsTotal[nrGroup]):
+    #         groupNodes.append(maxGroupNodes[i])
+    # print(groupNodes)
+    #     #     for node in complement.nodes:
+
+    #     #     nodes.append(max(complement.nodes, key = lambda x: x[0]))
+    #     #     print(nodes)
+    #     # groupNodes[i]
+    # maxCliqueGraph = nx.Graph()
+    # for node in groupNodes:
+    #     maxCliqueGraph.add_node(node, weight = node[0] + 1)
+
+    # print(maxCliqueGraph.nodes)
+
+
+    print(maxClique)
+    # solution = approximation.independent_set.maximum_independent_set(cinema.graph)
+
+    # print(maxCliqueGraph.nodes)
+    # maxIndependentSet = nx.complement(maxCliqueGraph)
+    # print(maxIndependentSet.edges)
+    for group in maxClique[0]:
         cinema.placeGroup(group[1][0], group[1][1], group[0] + 1)
         # print(cinema.layout)
     
