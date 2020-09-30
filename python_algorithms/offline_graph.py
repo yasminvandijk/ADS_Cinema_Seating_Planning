@@ -299,7 +299,11 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> []:
         for groupIndex in reversed(range(len(nrGroupsRemaining))):
             if (nrGroupsRemaining[groupIndex] > 0):
                 # bound: check if this solution is worth expanding
-                maxclique = nx.algorithms.clique.max_weight_clique(nx.complement(partialCinema.graph))
+                cgraph = nx.complement(partialCinema.graph)
+                for node in cgraph.nodes:
+                # print(complement.nodes[node])
+                    cgraph.nodes[node]['weight'] = node[0] + 1
+                maxclique = nx.algorithms.clique.max_weight_clique(cgraph)
                 if (maxclique[1] > maxNrPlaced):
                     # branch: create new partial solutions
                     cinemaCopy: Cinema = copy.deepcopy(partialCinema)
@@ -309,7 +313,7 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> []:
 
                         # new partial solution found
                         graphCopy.add_node((groupIndex, seats), weight = groupIndex)
-                        graphCopy.createEdges()
+                        cinemaCopy.createEdges()
 
                         cgraph = nx.complement(graphCopy)
                         for node in cgraph.nodes:
