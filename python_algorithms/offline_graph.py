@@ -62,25 +62,28 @@ class Cinema(object):
     def createEdges(self):
         # loop through all layers and check overlap for all the nodes in the graph layers
         # print(self.graph.nodes)
-        for groupSize1 in range(0, len(self.layers) - 1):
-            for groupSize2 in range(1, len(self.layers)):
+        for groupSize1 in range(len(self.layers)):
+            for groupSize2 in range(len(self.layers)):
                 for indices1 in self.layers[groupSize1]:
                     for indices2 in self.layers[groupSize2]:
+                        # if (groupSize1, indices1) != (groupSize2, indices2):
                         # if seats are on the same row, check if they're less than 2 columns apart
+                        # a <= b <= c <=> a <= b && b <= c
                         if indices1[0] == indices2[0]:
                             if indices2[1] - 2 <= indices1[1] <= indices2[1] + groupSize2 + 2 and indices1[1] - 2 <= indices2[1] <= indices1[1] + groupSize1 + 2:
+                                print((groupSize1 + 1, indices1), (groupSize2 + 1, indices2))
                                 self.graph.add_edge((groupSize1, indices1), (groupSize2, indices2))
                                 # add edge
                         # if seats are on adjacent rows, check if they're less than 1 column apart
                         elif abs(indices1[0] - indices2[0]) == 1: # don't check rows that are farther apart than 2 rows
                             if indices1[1] - 1 <= indices2[1] <= indices1[1] + groupSize1 + 1 and indices2[1] - 1 <= indices1[1] <= indices2[1] + groupSize2 + 1:
+                                print((groupSize1 + 1, indices1), (groupSize2 + 1, indices2))
                                 self.graph.add_edge((groupSize1, indices1), (groupSize2, indices2))
                                 # add edge
                             
         # print(self.graph.edges)
 
     """
-    
         (0, 0)  (0, 3)
         xx++    +++x
         +++1    x+++ (1, 0)
