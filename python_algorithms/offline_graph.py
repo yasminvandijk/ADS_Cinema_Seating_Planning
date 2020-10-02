@@ -276,7 +276,7 @@ class Cinema(object):
 @dataclass(order=True)
 class PrioritizedItem:
     priority: int
-    item: (Cinema, nx.Graph, np.array)=field(compare=False)
+    item: (Cinema, [], np.array)=field(compare=False)
 
 
 
@@ -293,15 +293,21 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> []:
     # items in the queue are sorted ascending on the cinema's score
     # we use negative score to ensure the partial solutions with the 
     # highest score are taken from the queue first
+    allSeats = []
+    for groupIndex in range(len(nrGroupsTotal)):
+        allSeats.append(cinema.findSeating(groupIndex + 1))
+    
     queue = PriorityQueue()
-    initialItem = PrioritizedItem(-cinema.score(), (cinema, nx.Graph(), nrGroupsTotal))
+    initialItem = PrioritizedItem(-cinema.score(), (cinema, allSeats, nrGroupsTotal))
     queue.put(initialItem)
+
     
     while not queue.empty():
         # get a partial solution from the queue
         item = queue.get()
         partialCinema = item.item[0]
-        partialGraph = item.item[1]
+        partialGraph = partialCinema.graph
+        partialSeats = item.item[1]
         nrGroupsRemaining = item.item[2]
         # loop over all group sizes
         for groupIndex in reversed(range(len(nrGroupsRemaining))):
@@ -316,13 +322,14 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> []:
 
                 # if (maxclique[1] > maxNrPlaced):
                     # branch: create new partial solutions
-                    allSeats = cinema.findSeating(groupIndex + 1)
+                    # allSeats = cinema.findSeating(groupIndex + 1)
                     nrGroupsRemainingCopy = copy.deepcopy(nrGroupsRemaining)
                     nrGroupsRemainingCopy[groupIndex] -= 1
                     # print(allSeats)
-                    for seats in allSeats:
-                        # if (nrGroupsRemainingCopy[groupIndex] > 0):
-                        # new partial solution found
+                    if len(partialSeats[groupIndex]) > 0:
+                        seats = partialSeats[groupIndex].pop()
+                            # if (nrGroupsRemainingCopy[groupIndex] > 0):
+                            # new partial solution found
                         cinemaCopy: Cinema = copy.deepcopy(partialCinema)
                         cinemaCopy.graph = copy.deepcopy(partialGraph)
                         cinemaCopy.graph.add_node((groupIndex, seats), weight = groupIndex)
@@ -344,7 +351,7 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> []:
                             bestClique = copy.deepcopy(maxWeight)
                         
                         # add partial solution to priority queue
-                        newPartialSolution = PrioritizedItem(-maxWeight[1], (cinemaCopy, cinemaCopy.graph, nrGroupsRemainingCopy))
+                        newPartialSolution = PrioritizedItem(-maxWeight[1], (cinemaCopy, copy.deepcopy(partialSeats), nrGroupsRemainingCopy))
                         queue.put(newPartialSolution)
 
     return bestClique
