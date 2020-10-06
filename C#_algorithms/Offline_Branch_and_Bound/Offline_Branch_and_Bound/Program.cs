@@ -215,15 +215,18 @@ namespace Offline_Branch_and_Bound
                 markUnavailable(x + size + 1, y);
             }
         }
-
+        
         public bool findSeating(int size)
         {
             if (size > columns) return false;
 
             for (int i = 0; i < rows; i++)
             {
-                
+                if (seatList[i].ContainsKey(size))
+                    Console.WriteLine("Found " + size);
             }
+
+            return true;
         }
     }
 }

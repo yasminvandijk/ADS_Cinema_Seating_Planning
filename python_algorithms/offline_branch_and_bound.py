@@ -38,6 +38,76 @@ class Cinema(object):
         self.layout = layout
         self.totalPlaced = 0
         self.totalRemainingPlaces = self.countRemainingSeats()
+        self.seatList = []  # 1: [(1, 1), (2, 2), ...]
+        self.initSeatList()
+    
+
+    def initSeatList(self):
+        for row in range(self.nrRows):
+            self.seatList.append(dict())
+            self.updateRowSeatList(row)
+
+
+    def updateRowSeatList(self, rowIndex: int):
+        availableSeats = self.getAvailableSeats(rowIndex)
+        self.seatList[rowIndex] = dict()
+
+        for seat in availableSeats:
+            print(seat)
+            if seat[1] in self.seatList[rowIndex]:
+                self.seatList[rowIndex][seat[1]].append(seat[0])
+            else:
+                self.seatList[rowIndex][seat[1]] = [seat[0]]
+    
+
+    def updateRowsSeatList(self, rowIndex: int):
+        if rowIndex > 0:
+            self.updateRowSeatList(rowIndex - 1)
+
+        self.updateRowSeatList(rowIndex)
+
+        if rowIndex < self.nrRows - 1:
+            self.updateRowSeatList(rowIndex + 1)
+
+
+    def countUnavailableSeats(self, rowIndex: int, colIndex: int, groupSize: int, nrSeats: int) -> (int, int):
+        lowestCount = None
+        bestColIndex = None
+        for column in range(colIndex, colIndex + nrSeats - groupSize + 1):
+            count = 0
+            if (rowIndex > 0):
+                for i in range(groupSize):
+                    count += 1
+                if (column > 0):
+                    count += 1
+                if (column + groupSize < self.nrCols):
+                    count += 1
+            
+            # unavailable seats - one row underneath
+            if (rowIndex + 1 < self.nrRows):
+                for i in range(groupSize):
+                    count += 1
+                if (column > 0):
+                    count += 1
+                if (column + groupSize < self.nrCols):
+                    count += 1
+
+            # unavailable seats - left and right sides (2 seats each)
+            if (column > 0):
+                count += 1
+            if (column > 1):
+                count += 1
+            if (column + groupSize < self.nrCols):
+                count += 1
+            if (column + groupSize + 1 < self.nrCols):
+                count += 1
+
+            if lowestCount is None or count < lowestCount:
+                lowestCount = count
+                bestColIndex = column
+
+        return (lowestCount, bestColIndex)
+
 
     def countRemainingSeats(self) -> int:
         """
@@ -180,7 +250,41 @@ class Cinema(object):
 
         return False
 
+    def findBestSeating(self, groupSize: int) -> (int, int):
+            """
+            iteratively check each row until a row is found where this group fits
+            places the group on that row as far to the left as possible
+            returns (rowIndex + 1, colIndex + 1) if a the group is placed, (0, 0) otherwise
+            """
+            # check if group is smaller or equal to number of columns
+            if (groupSize > self.nrCols):
+                return (0, 0)
+            
+            leastUnavailableSeats: int = None
+            leastUnavailableSeatsIndex: (int, int) = None
 
+            # check for each row if group fits
+            for y in range(nrRows):
+                availableSeats = [x for x in self.getAvailableSeats(y) if x[1] >= groupSize]
+                if (len(availableSeats) > 0):
+                    # a possible seating is found, take the best seating and place group there
+                    seating: (int, int) = availableSeats[0]
+                    nrUnavailableSeats, colIndex = self.countUnavailableSeats(y, seating[0], groupSize, seating[1])
+                    if leastUnavailableSeats is None or nrUnavailableSeats < leastUnavailableSeats:
+                        leastUnavailableSeats = nrUnavailableSeats
+                        leastUnavailableSeatsIndex = (y, colIndex)
+
+            if leastUnavailableSeats is not None:
+                self.placeGroup(leastUnavailableSeatsIndex[0], leastUnavailableSeatsIndex[1], groupSize)
+
+                self.updateRowsSeatList(leastUnavailableSeatsIndex[0])
+                # self.printCinema()
+
+                self.totalPlaced += groupSize
+                self.totalRemainingPlaces -= groupSize
+                return (leastUnavailableSeatsIndex[0] + 1, leastUnavailableSeatsIndex[1] + 1)
+
+            return (0, 0)
 
 @dataclass(order=True)
 class PrioritizedItem:
@@ -218,7 +322,8 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> Cinema:
                 if (partialCinema.score() > maxNrPlaced):
                     # branch: create new partial solutions
                     cinemaCopy: Cinema = copy.deepcopy(partialCinema)
-                    if (cinemaCopy.findSeating(groupIndex + 1)):
+                    seating = cinemaCopy.findSeating(groupIndex + 1)
+                    if seating:
                         # new partial solution found
                         nrGroupsRemainingCopy = copy.deepcopy(nrGroupsRemaining)
                         nrGroupsRemainingCopy[groupIndex] -= 1

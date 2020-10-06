@@ -43,7 +43,7 @@ class Cinema(object):
         self.layout = layout
         # nodes in the graph are tuples of (groupSize, (rowIndex, colIndex))
         self.graph = nx.Graph()
-        self.layers = self._initLayers()
+        # self.layers = self._initLayers()
         self.totalPlaced = 0
         self.totalRemainingPlaces = self.countRemainingSeats()
 
@@ -52,7 +52,7 @@ class Cinema(object):
         for groupSize in range(NRGROUPS):
             seats = self.findSeating(groupSize + 1)
             for seat in seats:
-                self.graph.add_node((groupSize, seat), weight = groupSize)
+                self.graph.add_node((groupSize, seat))
                 # print(self.graph.nodes)
             layers.append(seats)
         
@@ -62,28 +62,32 @@ class Cinema(object):
     def createEdges(self):
         # loop through all layers and check overlap for all the nodes in the graph layers
         # print(self.graph.nodes)
-        for groupSize1 in range(len(self.layers)):
-            for groupSize2 in range(len(self.layers)):
-                for indices1 in self.layers[groupSize1]:
-                    for indices2 in self.layers[groupSize2]:
-                        # if (groupSize1, indices1) != (groupSize2, indices2):
+        for node1 in self.graph.nodes:
+            for node2 in self.graph.nodes:
+                # print(f'node = {node1}')
+                indices1 = node1[1]
+                indices2 = node2[1]
+                groupSize1 = node1[0]
+                groupSize2 = node2[0]
+                # for indices1 in self.layers[groupSize1]:
+                    # for indices2 in self.layers[groupSize2]:
                         # if seats are on the same row, check if they're less than 2 columns apart
-                        # a <= b <= c <=> a <= b && b <= c
-                        if indices1[0] == indices2[0]:
-                            if indices2[1] - 2 <= indices1[1] <= indices2[1] + groupSize2 + 2 and indices1[1] - 2 <= indices2[1] <= indices1[1] + groupSize1 + 2:
-                                print((groupSize1 + 1, indices1), (groupSize2 + 1, indices2))
-                                self.graph.add_edge((groupSize1, indices1), (groupSize2, indices2))
-                                # add edge
-                        # if seats are on adjacent rows, check if they're less than 1 column apart
-                        elif abs(indices1[0] - indices2[0]) == 1: # don't check rows that are farther apart than 2 rows
-                            if indices1[1] - 1 <= indices2[1] <= indices1[1] + groupSize1 + 1 and indices2[1] - 1 <= indices1[1] <= indices2[1] + groupSize2 + 1:
-                                print((groupSize1 + 1, indices1), (groupSize2 + 1, indices2))
-                                self.graph.add_edge((groupSize1, indices1), (groupSize2, indices2))
-                                # add edge
+                if indices1[0] == indices2[0]:
+                    if indices2[1] - 2 <= indices1[1] <= indices2[1] + groupSize2 + 2 or indices1[1] - 2 <= indices2[1] <= indices1[1] + groupSize1 + 2:
+                        # if indices1[0] == 1:
+                        #     print((groupSize1, indices1), (groupSize2, indices2))
+                        self.graph.add_edge((groupSize1, indices1), (groupSize2, indices2))
+                        # add edge
+                # if seats are on adjacent rows, check if they're less than 1 column apart
+                elif abs(indices1[0] - indices2[0]) == 1: # don't check rows that are farther apart than 2 rows
+                    if indices1[1] - 1 <= indices2[1] <= indices1[1] + groupSize1 + 1 or indices2[1] - 1 <= indices1[1] <= indices2[1] + groupSize2 + 1:
+                        self.graph.add_edge((groupSize1, indices1), (groupSize2, indices2))
+                        # add edge
                             
         # print(self.graph.edges)
 
     """
+    
         (0, 0)  (0, 3)
         xx++    +++x
         +++1    x+++ (1, 0)
@@ -272,54 +276,85 @@ class Cinema(object):
 @dataclass(order=True)
 class PrioritizedItem:
     priority: int
-    item: (Cinema, np.array)=field(compare=False)
+    item: (Cinema, [], np.array)=field(compare=False)
 
 
 
-def solve(cinema: Cinema, nrGroupsTotal: np.array) -> Cinema:
+def solve(cinema: Cinema, nrGroupsTotal: np.array) -> []:
     """
     solve using branch and bound with a priority queue
     """
     # keep track of the best partial solution we have seen
     bestCinema: Cinema = copy.deepcopy(cinema)
     maxNrPlaced: int = 0
+    bestClique: [] = None
     
     # put the initial cinema as partial solution in the priority queue
     # items in the queue are sorted ascending on the cinema's score
     # we use negative score to ensure the partial solutions with the 
     # highest score are taken from the queue first
+    allSeats = []
+    for groupIndex in range(len(nrGroupsTotal)):
+        allSeats.append(cinema.findSeating(groupIndex + 1))
+    
     queue = PriorityQueue()
-    initialItem = PrioritizedItem(-cinema.score(), (cinema, nrGroupsTotal))
+    initialItem = PrioritizedItem(-cinema.score(), (cinema, allSeats, nrGroupsTotal))
     queue.put(initialItem)
+
     
     while not queue.empty():
         # get a partial solution from the queue
         item = queue.get()
         partialCinema = item.item[0]
-        nrGroupsRemaining = item.item[1]
-        
+        partialGraph = partialCinema.graph
+        partialSeats = item.item[1]
+        nrGroupsRemaining = item.item[2]
         # loop over all group sizes
         for groupIndex in reversed(range(len(nrGroupsRemaining))):
-            if (nrGroupsRemaining[groupIndex] > 0):
+                if (nrGroupsRemaining[groupIndex] > 0):
+                    # print(f'group size: {groupIndex}')
                 # bound: check if this solution is worth expanding
-                if (partialCinema.score() > maxNrPlaced):
-                    # branch: create new partial solutions
-                    cinemaCopy: Cinema = copy.deepcopy(partialCinema)
-                    if (cinemaCopy.findSeating(groupIndex + 1)):
-                        # new partial solution found
-                        nrGroupsRemainingCopy = copy.deepcopy(nrGroupsRemaining)
-                        nrGroupsRemainingCopy[groupIndex] -= 1
+                # graphComplement = nx.complement(partialGraph)
+                # for node in graphComplement.nodes:
+                # # print(complement.nodes[node])
+                #     graphComplement.nodes[node]['weight'] = node[0] + 1
+                # maxClique = nx.algorithms.clique.max_weight_clique(cgraph)
 
+                # if (maxclique[1] > maxNrPlaced):
+                    # branch: create new partial solutions
+                    # allSeats = cinema.findSeating(groupIndex + 1)
+                    nrGroupsRemainingCopy = copy.deepcopy(nrGroupsRemaining)
+                    nrGroupsRemainingCopy[groupIndex] -= 1
+                    # print(allSeats)
+                    if len(partialSeats[groupIndex]) > 0:
+                        seats = partialSeats[groupIndex].pop()
+                            # if (nrGroupsRemainingCopy[groupIndex] > 0):
+                            # new partial solution found
+                        cinemaCopy: Cinema = copy.deepcopy(partialCinema)
+                        cinemaCopy.graph = copy.deepcopy(partialGraph)
+                        cinemaCopy.graph.add_node((groupIndex, seats), weight = groupIndex)
+                        cinemaCopy.createEdges()
+                        # print(cinemaCopy.graph.edges)
+
+                        cgraph = nx.complement(cinemaCopy.graph)
+                        for node in cgraph.nodes:
+                        # print(complement.nodes[node])
+                            cgraph.nodes[node]['weight'] = node[0] + 1
+
+                        maxWeight = nx.algorithms.clique.max_weight_clique(cgraph)
+
+                        # print(f'maxClique: {maxWeight}')
                         # check if this partial solution is better than best solution seen so far
-                        if (cinemaCopy.totalPlaced > maxNrPlaced):
-                            bestCinema = copy.deepcopy(cinemaCopy)
-                            maxNrPlaced = cinemaCopy.totalPlaced
+                        if (maxWeight[1] > maxNrPlaced):
+                            # bestCinema = copy.deepcopy(cinemaCopy)
+                            maxNrPlaced = maxWeight[1]
+                            bestClique = copy.deepcopy(maxWeight)
                         
                         # add partial solution to priority queue
-                        newPartialSolution = PrioritizedItem(-cinemaCopy.score(), (cinemaCopy, nrGroupsRemainingCopy))
+                        newPartialSolution = PrioritizedItem(-maxWeight[1], (cinemaCopy, copy.deepcopy(partialSeats), nrGroupsRemainingCopy))
                         queue.put(newPartialSolution)
 
-    return bestCinema
+    return bestClique
 
 if __name__ == '__main__':
     # number of rows and columns
@@ -335,48 +370,12 @@ if __name__ == '__main__':
     nrGroupsTotal = np.array([int(nr) for nr in input().split()])
 
     cinema = Cinema(nrRows, nrCols, layout)
-    cinema.createEdges()
-    complement = nx.complement(cinema.graph)
-    # print(len(complement.nodes))
-    for node in complement.nodes:
-        # print(complement.nodes[node])
-        complement.nodes[node]['weight'] = node[0] + 1
-    
+    solution = solve(cinema, nrGroupsTotal)
 
-    maxClique = nx.algorithms.clique.max_weight_clique(complement)
-    
-    # groupNodes = []
-    # allMaxNodes = sorted(complement.nodes, key = lambda x: complement.degree[x], reverse = True)
-    # for nrGroup in range(len(nrGroupsTotal)):
-    #     # for node in allMaxNodes:
-    #     #     print(complement.degree[node])
-    #     maxGroupNodes = [maxNode for maxNode in allMaxNodes if maxNode[0] == nrGroup]
-    #     # print(maxGroupNodes)
-    #     for i in range(nrGroupsTotal[nrGroup]):
-    #         groupNodes.append(maxGroupNodes[i])
-    # print(groupNodes)
-    #     #     for node in complement.nodes:
-
-    #     #     nodes.append(max(complement.nodes, key = lambda x: x[0]))
-    #     #     print(nodes)
-    #     # groupNodes[i]
-    # maxCliqueGraph = nx.Graph()
-    # for node in groupNodes:
-    #     maxCliqueGraph.add_node(node, weight = node[0] + 1)
-
-    # print(maxCliqueGraph.nodes)
-
-
-    print(maxClique)
-    # solution = approximation.independent_set.maximum_independent_set(cinema.graph)
-
-    # print(maxCliqueGraph.nodes)
-    # maxIndependentSet = nx.complement(maxCliqueGraph)
-    # print(maxIndependentSet.edges)
-    for group in maxClique[0]:
+    for group in solution[0]:
         cinema.placeGroup(group[1][0], group[1][1], group[0] + 1)
         # print(cinema.layout)
-    
+
     cinema.printCinema()
 
     # bestSolution = solve(cinema, nrGroupsTotal)
