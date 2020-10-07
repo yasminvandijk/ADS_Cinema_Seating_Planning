@@ -131,7 +131,7 @@ class Cinema(object):
         for rowIndex in range(self.nrRows):
             if groupSize in self.seatList[rowIndex]:
                 if len(self.seatList[rowIndex][groupSize]) != 0:
-                    print(f'exact number of {groupSize} seats found')
+                    # print(f'exact number of {groupSize} seats found')
                     seatFound = True
                     
                     # print(self.seatList[rowIndex][groupSize])
