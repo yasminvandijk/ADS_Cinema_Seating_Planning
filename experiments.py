@@ -29,7 +29,7 @@ if __name__ == '__main__':
                                 if output[0] == -1:
                                    dataframe = dataframe.append({'test_instance': f[:-4], 'nr_people_seated': 'N\A', 'nr_unavailable_places': 'N\A', 'running_time': 'N\A'}, ignore_index = True)
                                 else:
-                                    dataframe = dataframe.append({'test_instance': f[:-4], 'nr_people_seated': output[0], 'nr_unavailable_places': output[1], 'running_time': end - start}, ignore_index = True)
+                                    dataframe = dataframe.append({'test_instance': f[:-4], 'nr_people_seated': int(output[0]), 'nr_unavailable_places': int(output[1]), 'running_time': end - start}, ignore_index = True)
 
                                 print(dataframe)
                             except KeyboardInterrupt:
