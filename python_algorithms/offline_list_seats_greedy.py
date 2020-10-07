@@ -197,12 +197,12 @@ if __name__ == '__main__':
                 break
 
     # output
-    cinema.printOutput()
+    # cinema.printOutput()
     
     # print some extra info
-    cinema.printCinema()
-    print(f'groups: {nrGroupsTotal}')
-    print(f'placed: {nrGroupsPlaced}')
+    # cinema.printCinema()
+    # print(f'groups: {nrGroupsTotal}')
+    # print(f'placed: {nrGroupsPlaced}')
 
     totalVisitors: int = 0
     totalPlaced: int = 0
@@ -211,4 +211,6 @@ if __name__ == '__main__':
         totalVisitors = totalVisitors + nrGroupsTotal[i] * (i + 1)
         totalPlaced = totalPlaced + nrGroupsPlaced[i] * (i + 1)
     
-    print(f'placed: {totalPlaced} out of {totalVisitors}')
+    # print(f'placed: {totalPlaced} out of {totalVisitors}')
+    print(totalPlaced)
+    print(np.count_nonzero(cinema.layout == '+'))

@@ -376,7 +376,7 @@ if __name__ == '__main__':
         cinema.placeGroup(group[1][0], group[1][1], group[0] + 1)
         # print(cinema.layout)
 
-    cinema.printCinema()
+    # cinema.printCinema()
 
     # bestSolution = solve(cinema, nrGroupsTotal)
 
@@ -387,4 +387,6 @@ if __name__ == '__main__':
         totalVisitors += nrGroupsTotal[i] * (i + 1)
         
     
-    print(f'placed: {cinema.totalPlaced} out of {totalVisitors}')
+    # print(f'placed: {cinema.totalPlaced} out of {totalVisitors}')
+    print(cinema.totalPlaced)
+    print(np.count_nonzero(cinema.layout == '+'))

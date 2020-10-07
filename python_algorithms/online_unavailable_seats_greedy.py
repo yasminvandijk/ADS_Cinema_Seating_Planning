@@ -213,12 +213,12 @@ if __name__ == '__main__':
         nrGroupsTotal[groupSize - 1] = nrGroupsTotal[groupSize - 1] + 1
         if ((y, x) != (0, 0)):
             nrGroupsPlaced[groupSize - 1] = nrGroupsPlaced[groupSize - 1] + 1
-        print(f'{y} {x}')
+        # print(f'{y} {x}')
     
     # print some extra info
-    cinema.printCinema()
-    print(f'groups: {nrGroupsTotal}')
-    print(f'placed: {nrGroupsPlaced}')
+    # cinema.printCinema()
+    # print(f'groups: {nrGroupsTotal}')
+    # print(f'placed: {nrGroupsPlaced}')
 
     totalVisitors: int = 0
     totalPlaced: int = 0
@@ -227,4 +227,6 @@ if __name__ == '__main__':
         totalVisitors = totalVisitors + nrGroupsTotal[i] * (i + 1)
         totalPlaced = totalPlaced + nrGroupsPlaced[i] * (i + 1)
     
-    print(f'placed: {totalPlaced} out of {totalVisitors}')
+    # print(f'placed: {totalPlaced} out of {totalVisitors}')
+    print(totalPlaced)
+    print(np.count_nonzero(cinema.layout == '+'))

@@ -356,10 +356,12 @@ if __name__ == '__main__':
 
     bestSolution = solve(cinema, nrGroupsTotal)
 
-    bestSolution.printCinema()
+    # bestSolution.printCinema()
 
     totalVisitors: int = 0
     for i in range(len(nrGroupsTotal)):
         totalVisitors += nrGroupsTotal[i] * (i + 1)
     
-    print(f'placed: {bestSolution.totalPlaced} out of {totalVisitors}')
+    # print(f'placed: {bestSolution.totalPlaced} out of {totalVisitors}')
+    print(bestSolution.totalPlaced)
+    print(np.count_nonzero(bestSolution.layout == '+'))

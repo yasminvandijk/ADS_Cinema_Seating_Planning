@@ -172,10 +172,10 @@ if __name__ == '__main__':
     # cinema layout
     layout = np.empty((nrRows, nrCols), dtype = str)
     for i in range(nrRows):
-        layout[i] = [b for b in input()]
+        layout[i] = [b for b in input().strip()]
 
     # read in group sizes
-    groupSizes = np.array([int(nr) for nr in input().split()])
+    groupSizes = np.array([int(nr) for nr in input().rstrip().split()])
 
     # number of groups in total for each group size
     nrGroupsTotal = np.full((8), 0, dtype=int)
@@ -192,12 +192,12 @@ if __name__ == '__main__':
         nrGroupsTotal[groupSize - 1] = nrGroupsTotal[groupSize - 1] + 1
         if ((y, x) != (0, 0)):
             nrGroupsPlaced[groupSize - 1] = nrGroupsPlaced[groupSize - 1] + 1
-        print(f'{y} {x}')
+        # print(f'{y} {x}')
     
     # print some extra info
-    cinema.printCinema()
-    print(f'groups: {nrGroupsTotal}')
-    print(f'placed: {nrGroupsPlaced}')
+    # cinema.printCinema()
+    # print(f'groups: {nrGroupsTotal}')
+    # print(f'placed: {nrGroupsPlaced}')
 
     totalVisitors: int = 0
     totalPlaced: int = 0
@@ -206,4 +206,6 @@ if __name__ == '__main__':
         totalVisitors = totalVisitors + nrGroupsTotal[i] * (i + 1)
         totalPlaced = totalPlaced + nrGroupsPlaced[i] * (i + 1)
     
-    print(f'placed: {totalPlaced} out of {totalVisitors}')
+    # print(f'placed: {totalPlaced} out of {totalVisitors}')
+    print(totalPlaced)
+    print(np.count_nonzero(cinema.layout == '+'))
