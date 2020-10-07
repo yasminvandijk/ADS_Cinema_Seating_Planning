@@ -30,6 +30,9 @@ import copy
 from queue import PriorityQueue
 from dataclasses import dataclass, field
 from typing import Any
+import time
+
+TIMELIMIT = 1800
 
 class Cinema(object):
     def __init__(self, nrRows: int, nrCols: int, layout: np.array):
@@ -309,7 +312,11 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> Cinema:
     initialItem = PrioritizedItem(-cinema.score(), (cinema, nrGroupsTotal))
     queue.put(initialItem)
     
+    start = time.time()
     while not queue.empty():
+        current = time.time()
+        if current - start > TIMELIMIT: # set timeout for 30min
+            break
         # get a partial solution from the queue
         item = queue.get()
         partialCinema = item.item[0]

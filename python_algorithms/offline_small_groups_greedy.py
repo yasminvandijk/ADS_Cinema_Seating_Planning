@@ -3,6 +3,8 @@
 import numpy as np
 import copy
 
+TIMELIMIT = 1800
+
 class Cinema(object):
     def __init__(self, nrRows: int, nrCols: int, layout):
         self.nrRows = nrRows
@@ -158,8 +160,14 @@ if __name__ == '__main__':
     sortedIndex = len(sortedIndices) - 1
     nrGroupsRemaining = copy.deepcopy(nrGroupsTotal)
 
+    start = time.time()
     # loop over groups based on their largest total number of people in their respective group sizes
     while sortedIndex >= 0:
+        current = time.time()
+        if current - start > TIMELIMIT:
+            print(-1)
+            print(-1)
+            sys.exit()
         if nrGroupsTotal[sortedIndices[sortedIndex]] > 0:
             if cinema.findSeating(sortedIndices[sortedIndex] + 1):
                 nrGroupsPlaced[sortedIndices[sortedIndex]] += 1

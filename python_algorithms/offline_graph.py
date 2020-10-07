@@ -32,9 +32,11 @@ from dataclasses import dataclass, field
 from typing import Any
 import networkx as nx
 from networkx.algorithms import approximation
+import time
 
 
 NRGROUPS = 8
+TIMELIMIT = 1800
 
 class Cinema(object):
     def __init__(self, nrRows: int, nrCols: int, layout: np.array):
@@ -301,9 +303,13 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> []:
     initialItem = PrioritizedItem(-cinema.score(), (cinema, allSeats, nrGroupsTotal))
     queue.put(initialItem)
 
-    
+    start = time.time()
     while not queue.empty():
         # get a partial solution from the queue
+        current = time.time()
+        if current - start > TIMELIMIT: # set timeout for 30min
+            break
+
         item = queue.get()
         partialCinema = item.item[0]
         partialGraph = partialCinema.graph

@@ -1,5 +1,9 @@
 import numpy as np
 import fileinput
+import time
+import sys
+
+TIMELIMIT = 1800
 
 class Cinema(object):
     def __init__(self, nrRows: int, nrCols: int, layout):
@@ -129,8 +133,15 @@ if __name__ == '__main__':
 
     cinema = Cinema(nrRows, nrCols, layout)
 
+    start = time.time()
     # try to place groups one by one
     for groupSize in groupSizes:
+        current = time.time()
+        if current - start > TIMELIMIT:
+            print(-1)
+            print(-1)
+            sys.exit()
+            
         if groupSize == 0:
             break
         (y, x) = cinema.findSeating(groupSize)

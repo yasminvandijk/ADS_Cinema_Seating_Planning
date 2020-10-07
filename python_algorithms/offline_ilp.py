@@ -1,6 +1,7 @@
 import gurobipy as gp
 from gurobipy import GRB
 import numpy as np
+import copy
 
 NLAYERS = 8
 
@@ -10,29 +11,44 @@ def createModel(nrRows, nrCols, layout, nrGroupsTotal):
         # Create a new model
         model = gp.Model('cinema')
 
-        x = model.addVars(NLAYERS, nrRows, nrCols, vtype = GRB.BINARY, name = 'x')  # x[i, r, c]
-        seats = model.addVars(nrRows, nrCols, vtype = GRB.BINARY, name = 'seats')   # X[i]
+        x = model.addVars(NLAYERS, nrRows, nrCols, vtype = GRB.BINARY, name = 'x')  # x[i, r, c] - 1 if a group of i people is seated on layer i on row r, column c
+        seats = model.addVars(nrRows, nrCols, vtype = GRB.BINARY, name = 'seats')   # seats[r, c] - 1 if there is a seat on row r, column c
 
+        # fill in existing seats
         for row in range(nrRows):
             for col in range(nrCols):
-                model.addConstrs(((seats[row, col] == 0) >> (x[layer, row, col] == 0)) for layer in range(NLAYERS)) # cannot seat people where there is no seat
                 if layout[row, col] == '1':
                     model.addConstr(seats[row, col] == 1)
+                    # for layer in range(NLAYERS):
+                    #     seats[row, col].LB = 1
                 else:
                     model.addConstr(seats[row, col] == 0)
+                    # for layer in range(NLAYERS):
+                    #     seats[row, col].UB = 0
+                model.addConstrs(((seats[row, col] == 0) >> (x[layer, row, col] == 0)) for layer in range(NLAYERS)) # cannot seat people where there is no seat
+                
 
-        model.addConstrs(x.sum('*', i, j) <= 1 for i in range(nrRows) for j in range(nrCols))   # the sum of people seating on the same spot on all layers has to be at most 1
-        # model.addConstrs((x[i, r, c] == 1) >> (x[j, r, c] == 0) for i in range(NLAYERS) for j in range(NLAYERS) for r in range(nrRows) for c in range(nrCols) if i != j)
-        model.setObjective(gp.quicksum(x), GRB.MAXIMIZE)   # maximise the total number of people
+        # the sum of people seating on the same spot on all layers has to be at most 1
+        # model.addConstrs(x.sum('*', i, j) <= 1 for i in range(nrRows) for j in range(nrCols))  
+        # model.addConstr(gp.quicksum(x[l, i, j] for i in range(nrRows) for j in range(nrCols) for l in range(NLAYERS)) <= 1) 
+       
+        
+        # cannot have more people available on layer i than how many people of group size i are available
+        for i in range(NLAYERS):
+            model.addConstr(x.sum(i, '*', '*') <= (i + 1) * nrGroupsTotal[i])
+        
+        model.setObjective(x.sum(), GRB.MAXIMIZE)   # maximise the total number of people
 
-        for i in range(NLAYERS - 1):
-            for j in range(i, NLAYERS):
+        # modelling seating groups of people and marking the area around them as unavailable
+        for i in range(NLAYERS):
+            for j in range(NLAYERS):
                 for r in range(nrRows):
                     for c in range(nrCols):
                         for k in range(-2, 3):  # same row
                             try:
-                                model.addConstr((x[i, r, c] == 1) >> (x[j, r, c + k + i] == 0))
-                                model.addConstr((x[j, r, c] == 1) >> (x[i, r, c + k + j] == 0))
+                                # pass
+                                model.addConstr((x[i, r, c] == 1) >> (x[j, r, c + k + j] == 0))
+                                model.addConstr((x[j, r, c] == 1) >> (x[i, r, c + k + i] == 0))
 
                                 # model.addConstr(x[i, r, c] * x[j, r, c + k + i] == 0)
                                 # model.addConstr(x[j, r, c] * x[i, r, c + k + j] == 0)
@@ -43,8 +59,9 @@ def createModel(nrRows, nrCols, layout, nrGroupsTotal):
                         for k in range(-1, 2):  # one row apart
                             for l in range(-1, 2):  # check for columns
                                 try:
-                                    model.addConstr((x[i, r, c] == 1) >> (x[j, r + k, c + l + i] == 0))
-                                    model.addConstr((x[j, r, c] == 1) >> (x[i, r + k, c + l + j] == 0))
+                                    # pass
+                                    model.addConstr((x[i, r, c] == 1) >> (x[j, r + k, c + l + j] == 0))
+                                    model.addConstr((x[j, r, c] == 1) >> (x[i, r + k, c + l + i] == 0))
 
                                     # model.addConstr(x[i, r, c] * x[j, r + k, c + l + i] == 0)
                                     # model.addConstr(x[j, r, c] * x[i, r + k, c + l + j] == 0)
@@ -53,8 +70,6 @@ def createModel(nrRows, nrCols, layout, nrGroupsTotal):
                                 except KeyError:
                                     pass
         
-        for i in range(NLAYERS):
-            model.addConstr(x.sum(i, '*', '*') <= (i + 1) * nrGroupsTotal[i])
         
         model.optimize()
 
@@ -235,11 +250,15 @@ if __name__ == '__main__':
 
     cinemas = []
     for i in range(NLAYERS):
-        cinemas.append(Cinema(nrRows, nrCols, layout))
+        cinemas.append(copy.deepcopy(Cinema(nrRows, nrCols, layout)))
 
+    # print(cinemas)
     solution = createModel(nrRows, nrCols, layout, nrGroupsTotal)
+    # print(solution)
     for seat in solution:
+        # print(seat[0])
         if solution[seat] == 1:
+            print(seat[0], cinemas[seat[0]])
             cinemas[seat[0]].placeGroup(seat[1], seat[2], 1)
     # loop over groups in descending group size
     # for index in reversed(range(len(nrGroupsTotal))):

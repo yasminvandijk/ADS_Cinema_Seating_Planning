@@ -2,6 +2,8 @@
 
 
 import numpy as np
+import time
+import sys
 
 class Cinema(object):
     def __init__(self, nrRows: int, nrCols: int, layout):
@@ -188,9 +190,16 @@ if __name__ == '__main__':
 
     cinema = Cinema(nrRows, nrCols, layout)
 
+    start = time.time()
     # loop over groups in descending group size
     for index in reversed(range(len(nrGroupsTotal))):
         for _ in range(nrGroupsTotal[index]):
+            current = time.time()
+            if current - start > 1800:  # set 30min timeout limit
+                print(-1)
+                print(-1)
+                sys.exit()
+
             if (cinema.findSeating(index + 1)):
                 nrGroupsPlaced[index] = nrGroupsPlaced[index] + 1
             else:
