@@ -5,6 +5,8 @@ import numpy as np
 import time
 import sys
 
+TIMELIMIT = 1800
+
 class Cinema(object):
     def __init__(self, nrRows: int, nrCols: int, layout):
         self.nrRows = nrRows
@@ -195,7 +197,7 @@ if __name__ == '__main__':
     for index in reversed(range(len(nrGroupsTotal))):
         for _ in range(nrGroupsTotal[index]):
             current = time.time()
-            if current - start > 1800:  # set 30min timeout limit
+            if current - start > TIMELIMIT:  # set 30min timeout limit
                 print(-1)
                 print(-1)
                 sys.exit()
