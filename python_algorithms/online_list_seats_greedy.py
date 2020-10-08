@@ -145,7 +145,7 @@ class Cinema(object):
         if not seatFound:
             for rowIndex in range(self.nrRows):
                 for group in sorted(self.seatList[rowIndex]):
-                    print(f'group: {group}')
+                    # print(f'group: {group}')
                     if group > groupSize and len(self.seatList[rowIndex][group]) != 0:
                         colIndex: int = self.seatList[rowIndex][group][0]
                         self.placeGroup(rowIndex, colIndex, groupSize)
