@@ -33,6 +33,7 @@ from typing import Any
 import time
 
 TIMELIMIT = 1800
+QSIZE = 400000
 
 class Cinema(object):
     def __init__(self, nrRows: int, nrCols: int, layout: np.array):
@@ -56,7 +57,7 @@ class Cinema(object):
         self.seatList[rowIndex] = dict()
 
         for seat in availableSeats:
-            print(seat)
+            # print(seat)
             if seat[1] in self.seatList[rowIndex]:
                 self.seatList[rowIndex][seat[1]].append(seat[0])
             else:
@@ -295,6 +296,15 @@ class PrioritizedItem:
     item: (Cinema, np.array)=field(compare=False)
 
 
+def shrinkQueue(queue: PriorityQueue):
+    newQueue = PriorityQueue()
+
+    for _ in range(int(queue.qsize() / 2 + 1)):
+        item = queue.get()
+        newQueue.put(item)
+    
+    return newQueue
+
 
 def solve(cinema: Cinema, nrGroupsTotal: np.array) -> Cinema:
     """
@@ -315,8 +325,6 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> Cinema:
     start = time.time()
     while not queue.empty():
         current = time.time()
-        if current - start > TIMELIMIT: # set timeout for 30min
-            break
         # get a partial solution from the queue
         item = queue.get()
         partialCinema = item.item[0]
@@ -324,6 +332,9 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> Cinema:
         
         # loop over all group sizes
         for groupIndex in reversed(range(len(nrGroupsRemaining))):
+            if current - start > TIMELIMIT: # set timeout for 30min
+                return bestCinema
+
             if (nrGroupsRemaining[groupIndex] > 0):
                 # bound: check if this solution is worth expanding
                 if (partialCinema.score() > maxNrPlaced):
@@ -342,6 +353,10 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> Cinema:
                         
                         # add partial solution to priority queue
                         newPartialSolution = PrioritizedItem(-cinemaCopy.score(), (cinemaCopy, nrGroupsRemainingCopy))
+
+                        if queue.qsize() + 1 == QSIZE:
+                            queue = shrinkQueue(queue)
+                        
                         queue.put(newPartialSolution)
 
     return bestCinema
@@ -354,7 +369,7 @@ if __name__ == '__main__':
     # cinema layout
     layout = np.empty((nrRows, nrCols), dtype = str)
     for i in range(nrRows):
-        layout[i] = [b for b in input()]
+        layout[i] = [b for b in input().rstrip()]
 
     # number of groups for each group size
     nrGroupsTotal = np.array([int(nr) for nr in input().split()])

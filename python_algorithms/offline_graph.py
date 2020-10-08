@@ -37,6 +37,7 @@ import time
 
 NRGROUPS = 8
 TIMELIMIT = 1800
+QSIZE = 400000
 
 class Cinema(object):
     def __init__(self, nrRows: int, nrCols: int, layout: np.array):
@@ -71,13 +72,9 @@ class Cinema(object):
                 indices2 = node2[1]
                 groupSize1 = node1[0]
                 groupSize2 = node2[0]
-                # for indices1 in self.layers[groupSize1]:
-                    # for indices2 in self.layers[groupSize2]:
-                        # if seats are on the same row, check if they're less than 2 columns apart
+
                 if indices1[0] == indices2[0]:
                     if indices2[1] - 2 <= indices1[1] <= indices2[1] + groupSize2 + 2 or indices1[1] - 2 <= indices2[1] <= indices1[1] + groupSize1 + 2:
-                        # if indices1[0] == 1:
-                        #     print((groupSize1, indices1), (groupSize2, indices2))
                         self.graph.add_edge((groupSize1, indices1), (groupSize2, indices2))
                         # add edge
                 # if seats are on adjacent rows, check if they're less than 1 column apart
@@ -281,6 +278,14 @@ class PrioritizedItem:
     item: (Cinema, [], np.array)=field(compare=False)
 
 
+def shrinkQueue(queue: PriorityQueue):
+    newQueue = PriorityQueue()
+
+    for _ in range(int(queue.qsize() / 2 + 1)):
+        item = queue.get()
+        newQueue.put(item)
+    
+    return newQueue
 
 def solve(cinema: Cinema, nrGroupsTotal: np.array) -> []:
     """
@@ -306,10 +311,6 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> []:
     start = time.time()
     while not queue.empty():
         # get a partial solution from the queue
-        current = time.time()
-        if current - start > TIMELIMIT: # set timeout for 30min
-            break
-
         item = queue.get()
         partialCinema = item.item[0]
         partialGraph = partialCinema.graph
@@ -317,48 +318,44 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> []:
         nrGroupsRemaining = item.item[2]
         # loop over all group sizes
         for groupIndex in reversed(range(len(nrGroupsRemaining))):
-                if (nrGroupsRemaining[groupIndex] > 0):
-                    # print(f'group size: {groupIndex}')
-                # bound: check if this solution is worth expanding
-                # graphComplement = nx.complement(partialGraph)
-                # for node in graphComplement.nodes:
-                # # print(complement.nodes[node])
-                #     graphComplement.nodes[node]['weight'] = node[0] + 1
-                # maxClique = nx.algorithms.clique.max_weight_clique(cgraph)
+            current = time.time()
+            if current - start > TIMELIMIT: # set timeout for 30min
+                return bestCinema
 
-                # if (maxclique[1] > maxNrPlaced):
-                    # branch: create new partial solutions
-                    # allSeats = cinema.findSeating(groupIndex + 1)
-                    nrGroupsRemainingCopy = copy.deepcopy(nrGroupsRemaining)
-                    nrGroupsRemainingCopy[groupIndex] -= 1
-                    # print(allSeats)
-                    if len(partialSeats[groupIndex]) > 0:
-                        seats = partialSeats[groupIndex].pop()
-                            # if (nrGroupsRemainingCopy[groupIndex] > 0):
-                            # new partial solution found
-                        cinemaCopy: Cinema = copy.deepcopy(partialCinema)
-                        cinemaCopy.graph = copy.deepcopy(partialGraph)
-                        cinemaCopy.graph.add_node((groupIndex, seats), weight = groupIndex)
-                        cinemaCopy.createEdges()
-                        # print(cinemaCopy.graph.edges)
+            if (nrGroupsRemaining[groupIndex] > 0):
+                nrGroupsRemainingCopy = copy.deepcopy(nrGroupsRemaining)
+                nrGroupsRemainingCopy[groupIndex] -= 1
 
-                        cgraph = nx.complement(cinemaCopy.graph)
-                        for node in cgraph.nodes:
-                        # print(complement.nodes[node])
-                            cgraph.nodes[node]['weight'] = node[0] + 1
+                if len(partialSeats[groupIndex]) > 0:
+                    seats = partialSeats[groupIndex].pop()
 
-                        maxWeight = nx.algorithms.clique.max_weight_clique(cgraph)
+                    cinemaCopy: Cinema = copy.deepcopy(partialCinema)
+                    cinemaCopy.graph = copy.deepcopy(partialGraph)
+                    cinemaCopy.graph.add_node((groupIndex, seats), weight = groupIndex)
+                    cinemaCopy.createEdges()
+                    # print(cinemaCopy.graph.edges)
 
-                        # print(f'maxClique: {maxWeight}')
-                        # check if this partial solution is better than best solution seen so far
-                        if (maxWeight[1] > maxNrPlaced):
-                            # bestCinema = copy.deepcopy(cinemaCopy)
-                            maxNrPlaced = maxWeight[1]
-                            bestClique = copy.deepcopy(maxWeight)
-                        
-                        # add partial solution to priority queue
-                        newPartialSolution = PrioritizedItem(-maxWeight[1], (cinemaCopy, copy.deepcopy(partialSeats), nrGroupsRemainingCopy))
-                        queue.put(newPartialSolution)
+                    cgraph = nx.complement(cinemaCopy.graph)
+                    for node in cgraph.nodes:
+                    # print(complement.nodes[node])
+                        cgraph.nodes[node]['weight'] = node[0] + 1
+
+                    maxWeight = nx.algorithms.clique.max_weight_clique(cgraph)
+
+                    # print(f'maxClique: {maxWeight}')
+                    # check if this partial solution is better than best solution seen so far
+                    if (maxWeight[1] > maxNrPlaced):
+                        # bestCinema = copy.deepcopy(cinemaCopy)
+                        maxNrPlaced = maxWeight[1]
+                        bestClique = copy.deepcopy(maxWeight)
+                    
+                    # add partial solution to priority queue
+                    newPartialSolution = PrioritizedItem(-maxWeight[1], (cinemaCopy, copy.deepcopy(partialSeats), nrGroupsRemainingCopy))
+
+                    if queue.qsize() + 1 == QSIZE:
+                            queue = shrinkQueue(queue)
+
+                    queue.put(newPartialSolution)
 
     return bestClique
 
@@ -370,7 +367,7 @@ if __name__ == '__main__':
     # cinema layout
     layout = np.empty((nrRows, nrCols), dtype = str)
     for i in range(nrRows):
-        layout[i] = [b for b in input()]
+        layout[i] = [b for b in input().rstrip()]
 
     # number of groups for each group size
     nrGroupsTotal = np.array([int(nr) for nr in input().split()])
