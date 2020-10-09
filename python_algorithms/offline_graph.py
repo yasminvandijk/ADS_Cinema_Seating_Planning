@@ -320,7 +320,7 @@ def solve(cinema: Cinema, nrGroupsTotal: np.array) -> []:
         for groupIndex in reversed(range(len(nrGroupsRemaining))):
             current = time.time()
             if current - start > TIMELIMIT: # set timeout for 30min
-                return bestCinema
+                return bestClique
 
             if (nrGroupsRemaining[groupIndex] > 0):
                 nrGroupsRemainingCopy = copy.deepcopy(nrGroupsRemaining)
@@ -374,6 +374,7 @@ if __name__ == '__main__':
 
     cinema = Cinema(nrRows, nrCols, layout)
     solution = solve(cinema, nrGroupsTotal)
+    print(solution)
 
     for group in solution[0]:
         cinema.placeGroup(group[1][0], group[1][1], group[0] + 1)
