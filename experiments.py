@@ -22,7 +22,7 @@ if __name__ == '__main__':
                             try:
                                 print(f'\t with test case {f[:-4]}')
                                 start = time.time()
-                                output = subprocess.check_output(['python3', join(ALGORITHM_DIR, algorithm)], stdin=file)
+                                output = subprocess.check_output(['python', join(ALGORITHM_DIR, algorithm)], stdin=file)
                                 end = time.time()
                                 output = output.split()
 
