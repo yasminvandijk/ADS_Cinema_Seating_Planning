@@ -374,7 +374,7 @@ if __name__ == '__main__':
 
     cinema = Cinema(nrRows, nrCols, layout)
     solution = solve(cinema, nrGroupsTotal)
-    print(solution)
+    #print(solution)
 
     for group in solution[0]:
         cinema.placeGroup(group[1][0], group[1][1], group[0] + 1)
