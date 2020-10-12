@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
-namespace Offline_Branch_and_Bound
+namespace ADS_CinemaSeating
 {
-    /// <summary>
-    /// priority queue; sorts items on priority in descending order
-    /// </summary>
-    /// <typeparam name="T">type of the items</typeparam>
     public class MaxPriorityQueue<T>
     {
         private class PrioritizedItem
@@ -18,10 +15,7 @@ namespace Offline_Branch_and_Bound
 
         private List<PrioritizedItem> _queue = new List<PrioritizedItem>();
 
-        /// <summary>
-        /// creates an empty priority queue which sorts item on priority in descending order
-        /// </summary>
-        public MaxPriorityQueue() {}
+        public MaxPriorityQueue() { }
 
         private void Swap(int index1, int index2)
         {
@@ -49,7 +43,7 @@ namespace Offline_Branch_and_Bound
         {
             int leftChildIndex = LeftChildIndex(index);
             int rightChildIndex = RightChildIndex(index);
-            
+
             int biggestIndex = index;
 
             // check if the item at this index has children with a bigger priority
@@ -71,20 +65,11 @@ namespace Offline_Branch_and_Bound
             }
         }
 
-        /// <summary>
-        /// returns whether the priority queue is empty
-        /// </summary>
-        /// <returns></returns>
         public bool Empty()
         {
             return _queue.Count == 0;
         }
 
-        /// <summary>
-        /// adds an item to the priority queue
-        /// </summary>
-        /// <param name="priority"></param>
-        /// <param name="item"></param>
         public void Add(int priority, T item)
         {
             PrioritizedItem prioritizedItem = new PrioritizedItem
@@ -95,7 +80,7 @@ namespace Offline_Branch_and_Bound
 
             _queue.Add(prioritizedItem);
 
-            // swap item with its parent if its priority is higher than the parents priority
+            // swap item with its parent its priority is higher than the parents priority
             int index = _queue.Count - 1;
             while (index > 0 && _queue[ParentIndex(index)].Priority < _queue[index].Priority)
             {
@@ -104,23 +89,23 @@ namespace Offline_Branch_and_Bound
             }
         }
 
-        /// <summary>
-        /// gets the item with the highest priority from the priority queue
-        /// </summary>
-        /// <returns></returns>
         public T Get()
         {
-            if (_queue.Count == 0)
-            {
-                throw new Exception("unable to get item out of empty queue");
-            }
-            
             PrioritizedItem prioritizedItem = _queue[0];
 
-            _queue[0] = _queue[_queue.Count - 1];
+            Swap(0, _queue.Count - 1);
+            _queue.RemoveAt(_queue.Count - 1);
             MinHeapify(0);
 
             return prioritizedItem.Item;
+        }
+
+        public void TrimQueueSize(int maxSize)
+        {
+            while (_queue.Count > maxSize)
+            {
+                _queue.RemoveAt(_queue.Count - 1);
+            }
         }
     }
 }

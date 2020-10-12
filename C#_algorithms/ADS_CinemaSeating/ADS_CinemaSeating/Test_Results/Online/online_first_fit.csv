@@ -1,0 +1,19 @@
+testcase, nr occupied seats, runtime (ms)
+Online01.txt, 5, 21
+Online02.txt, 9, 0
+Online03.txt, 15, 0
+Online04.txt, 12, 0
+Online05.txt, 22, 0
+Online06.txt, 29, 0
+Online07.txt, 41, 0
+Online08.txt, 38, 0
+Online09.txt, 69, 0
+Online10.txt, 74, 0
+Online11.txt, 45, 0
+Online12.txt, 144, 0
+Online13.txt, 234, 1
+Online14.txt, 330, 1
+Online15.txt, 414, 0
+Online16.txt, 9629, 141
+Online17.txt, 143089, 1916
+Online18.txt, 331483, 5500
