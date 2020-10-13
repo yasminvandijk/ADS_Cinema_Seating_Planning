@@ -1,0 +1,84 @@
+------------------------
+problem:
+- 1,5 meter constraint in cinemas
+	- keep at least one seat between groups vertically
+	- and at least two seats between groups horizontally
+- groups can not be split up, they need to be seated on the same row with no gaps between them
+goal:
+- find seats for as many people as possible under the given constraints
+------------------------
+offline algorithms
+- first fit 
+	- 2 versions: small groups first, big groups first
+- best fit
+	- 2 versions: small groups first, big groups first
+- branch and bound
+
+online algorithms
+- first fit
+- best fit
+------------------------
+first fit
+- finds places for groups, one by one
+- attempts to place groups at the first place where they fit under the given constraints
+- seats groups from top to bottom row, from left to right
+- 2 different versions: small groups first, big groups first
+- not guaranteed to find the best possible solution
+
+best fit
+- find places for groups, one by one
+- attempts to place groups where they add the least amount of new blocked seats
+- 2 different versions: small groups first, big groups first
+- not guaranteed to find the best possible solution 
+
+branch and bound
+- starts with the empty cinema as first partial solution
+	and puts it in a priority queue, with nr of people seated as priority
+- then it keeps taking the first item from the queue untill it is empty, or untill time runs out
+- for this partial solution, new partial solutions are created by (branching)
+	- (bounding) discard partial solution if the nr of occupied + available seats < bestfound nr occupied seats
+	- check if this solution is better than bestfound solution so far
+	- finding the first group of empty seats
+	- creating a new partial solution for every group that can be placed in that group leftmost
+	- also creating a new partial solution by marking the leftmost seat as unused
+- finally, when queue is empty or time has run out, the best solution found so far is returned
+- guaranteed to find the best possible solution given enough time,
+	- however, for large cinema's a large number of partial solutions is created
+	- therefor the runtime is high on large cinemas
+------------------------
+online first fit & best fit
+- both similar to the offline versions
+- only difference: the order in which groups are placed is determined by the order in which they arrive
+------------------------
+experiments
+- C# code
+- PC specs:
+	- OS:  Windows 10
+	- CPU: Intel Core i5-7400 3.00 GHz
+	- RAM: 8 GB
+------------------------
+results for offline algorithms
+- nr of people placed
+- runtimes
+------------------------
+results for online algorithms
+- nr of people placed
+- runtimes
+------------------------
+time complexity?
+competitive ratio?
+------------------------
+conclusions
+- which of the algorithms should be used and why?
+- consider both nr of people placed and the runtimes
+- offline:
+	- small cinemas: branch and bound?
+	- big cinemas: best fit - big groups first?
+	- perhaps a combination of the above, with a timelimit given by the user
+		- best fit guarantees to find a solution in a reasonable time,
+		- branch and bound might find a better solution given enough time
+- online:
+	- small cinemas: best fit?
+	- big cinemas: first fit?
+	- for small cinemas best fit usually finds better solutions in a reasonable time
+	- for bigger cinemas first fit finds solutions in a reasonable time
