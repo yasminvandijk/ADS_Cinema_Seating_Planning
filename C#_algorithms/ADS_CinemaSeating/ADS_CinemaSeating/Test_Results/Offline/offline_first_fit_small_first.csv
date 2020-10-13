@@ -1,0 +1,22 @@
+testcase, nr occupied seats, runtime (ms)
+Exact01.txt, 4, 5
+Exact02.txt, 4, 6
+Exact03.txt, 8, 5
+Exact04.txt, 14, 4
+Exact05.txt, 13, 5
+Exact06.txt, 26, 5
+Exact07.txt, 24, 0
+Exact08.txt, 23, 0
+Exact09.txt, 23, 0
+Exact10.txt, 47, 0
+Exact11.txt, 42, 0
+Exact12.txt, 51, 0
+Exact13.txt, 66, 0
+Exact14.txt, 72, 0
+Exact15.txt, 54, 0
+Exact16.txt, 135, 0
+Exact17.txt, 212, 12
+Exact18.txt, 3706, 29
+Exact19.txt, 23941, 228
+Exact20.txt, 85944, 2042
+Exact21.txt, 260815, 11412
