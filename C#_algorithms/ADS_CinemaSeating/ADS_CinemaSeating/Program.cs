@@ -60,15 +60,15 @@ namespace ADS_CinemaSeating
 
         static void Main(string[] args)
         {
-            long timeout_ms = 5 * 60 * 1000;
+            long timeout_ms = 30 * 60 * 1000;
 
-            //Run_Online_FirstFit(timeout_ms);
-            //Run_Online_BestFit(timeout_ms);
+            Run_Online_FirstFit(timeout_ms);
+            Run_Online_BestFit(timeout_ms);
 
-            //Run_Offline_FirstFit_SmallFirst(timeout_ms);
-            //Run_Offline_FirstFit_BigFirst(timeout_ms);
-            //Run_Offline_BestFit_SmallFirst(timeout_ms);
-            //Run_Offline_BestFit_BigFirst(timeout_ms);
+            Run_Offline_FirstFit_SmallFirst(timeout_ms);
+            Run_Offline_FirstFit_BigFirst(timeout_ms);
+            Run_Offline_BestFit_SmallFirst(timeout_ms);
+            Run_Offline_BestFit_BigFirst(timeout_ms);
 
             Run_Offline_Branch_And_Bound(timeout_ms);
         }
