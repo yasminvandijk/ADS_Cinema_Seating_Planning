@@ -58,13 +58,16 @@ namespace Online_BestFit
                 if (seating != (0, 0, 0))
                 {
                     cinema.SetGroup(seating.y, seating.x, groupSize);
-                    Console.WriteLine($"{seating.y + 1}, {seating.x + 1}");
+                    Console.WriteLine($"{seating.y + 1} {seating.x + 1}");
                 }
                 else
                 {
-                    Console.WriteLine($"0, 0");
+                    Console.WriteLine($"0 0");
                 }
             }
+
+            // output number of seated people
+            Console.WriteLine(cinema.NrOccupiedSeats);
         }
     }
 }
