@@ -6,6 +6,9 @@ namespace Online_FirstFit
 {
     class Program
     {
+        /// <summary>
+        /// places groups on the first possible place where they fit
+        /// </summary>
         static void Main(string[] args)
         {
             long timeout_ms = 30 * 60 * 1000;

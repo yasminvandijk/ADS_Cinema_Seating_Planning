@@ -6,6 +6,9 @@ namespace Offline_FirstFit_SmallFirst
 {
     class Program
     {
+        /// <summary>
+        /// places smallest groups first, at the first place where they fit
+        /// </summary>
         static void Main(string[] args)
         {
             long timeout_ms = 30 * 60 * 1000;

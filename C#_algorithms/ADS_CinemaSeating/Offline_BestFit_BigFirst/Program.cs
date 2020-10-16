@@ -6,6 +6,9 @@ namespace Offline_BestFit_BigFirst
 {
     class Program
     {
+        /// <summary>
+        /// places biggest groups first, at the first place where they create the least amount of new unavailable seats
+        /// </summary>
         static void Main(string[] args)
         {
             long timeout_ms = 30 * 60 * 1000;            

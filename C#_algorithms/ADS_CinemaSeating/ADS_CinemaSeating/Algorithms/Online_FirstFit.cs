@@ -61,11 +61,6 @@ namespace ADS_CinemaSeating.Algorithms
                 if (seating != (0, 0, 0))
                 {
                     cinema.SetGroup(seating.y, seating.x, groupSize);
-                    //Console.WriteLine($"{seating.y + 1}, {seating.x + 1}");
-                }
-                else
-                {
-                    //Console.WriteLine($"0, 0");
                 }
             }
 

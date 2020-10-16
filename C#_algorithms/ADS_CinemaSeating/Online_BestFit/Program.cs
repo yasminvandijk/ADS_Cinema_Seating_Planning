@@ -6,6 +6,9 @@ namespace Online_BestFit
 {
     class Program
     {
+        /// <summary>
+        /// places groups in the place where they create the least amount of new unavailable places
+        /// </summary>
         static void Main(string[] args)
         {
             long timeout_ms = 30 * 60 * 1000;

@@ -7,6 +7,12 @@ namespace Offline_Branch_And_Bound
 {
     class Program
     {
+        /// <summary>
+        /// finds the optimal solution through a branch and bound strategy
+        /// new partial solutions are created by placing groups, or marking a single seat as unused
+        /// the search space is bounded by checking whether a partial solution can still improve on 
+        /// the best found solution so far
+        /// </summary>
         static void Main(string[] args)
         {
             long timeout_ms = 30 * 60 * 1000;

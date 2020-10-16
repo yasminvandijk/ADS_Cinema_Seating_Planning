@@ -13,6 +13,12 @@ namespace ADS_CinemaSeating.Algorithms
         public int[] GroupAmounts { get; set; }
     }
     
+    /// <summary>
+    /// finds the optimal solution through a branch and bound strategy
+    /// new partial solutions are created by placing groups, or marking a single seat as unused
+    /// the search space is bounded by checking whether a partial solution can still improve on 
+    /// the best found solution so far
+    /// </summary>
     class Offline_Branch_And_Bound
     {
         public static TestResult Solve(string filepath, long timeout_ms)

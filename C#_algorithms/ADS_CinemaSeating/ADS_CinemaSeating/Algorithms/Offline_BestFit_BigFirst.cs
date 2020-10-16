@@ -6,6 +6,9 @@ using ADS_CinemaSeating.CinemaLayout;
 
 namespace ADS_CinemaSeating.Algorithms
 {
+    /// <summary>
+    /// places biggest groups first, at the first place where they create the least amount of new unavailable seats
+    /// </summary>
     class Offline_BestFit_BigFirst
     {
         public static TestResult Solve(string filepath, long timeout_ms)

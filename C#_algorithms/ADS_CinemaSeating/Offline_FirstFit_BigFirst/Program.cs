@@ -6,6 +6,9 @@ namespace Offline_FirstFit_BigFirst
 {
     class Program
     {
+        /// <summary>
+        /// places biggest groups first, at the first place where they fit
+        /// </summary>
         static void Main(string[] args)
         {
             long timeout_ms = 30 * 60 * 1000;
