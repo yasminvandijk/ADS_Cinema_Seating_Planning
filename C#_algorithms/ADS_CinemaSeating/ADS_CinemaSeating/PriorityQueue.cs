@@ -17,6 +17,11 @@ namespace ADS_CinemaSeating
 
         public MaxPriorityQueue() { }
 
+        /// <summary>
+        /// swap two items in the queue
+        /// </summary>
+        /// <param name="index1"></param>
+        /// <param name="index2"></param>
         private void Swap(int index1, int index2)
         {
             PrioritizedItem temp = _queue[index1];
@@ -24,21 +29,40 @@ namespace ADS_CinemaSeating
             _queue[index2] = temp;
         }
 
+        /// <summary>
+        /// get the queue index for the parent of an item at the given index
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         private int ParentIndex(int index)
         {
             return (int)Math.Floor((index - 1) / 2.0);
         }
 
+        /// <summary>
+        /// get the queue index for the left child of an item at the given index
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         private int LeftChildIndex(int index)
         {
             return 2 * index + 1;
         }
 
+        /// <summary>
+        /// get the queue index for the right child of an item at the given index
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         private int RightChildIndex(int index)
         {
             return 2 * index + 2;
         }
 
+        /// <summary>
+        /// restores the order in the priority queue with the item at index as root node
+        /// </summary>
+        /// <param name="index"></param>
         private void MinHeapify(int index)
         {
             int leftChildIndex = LeftChildIndex(index);
@@ -65,11 +89,20 @@ namespace ADS_CinemaSeating
             }
         }
 
+        /// <summary>
+        /// check if queue is empty
+        /// </summary>
+        /// <returns></returns>
         public bool Empty()
         {
             return _queue.Count == 0;
         }
 
+        /// <summary>
+        /// add an item with a priority to the queue
+        /// </summary>
+        /// <param name="priority"></param>
+        /// <param name="item"></param>
         public void Add(int priority, T item)
         {
             PrioritizedItem prioritizedItem = new PrioritizedItem
@@ -89,6 +122,11 @@ namespace ADS_CinemaSeating
             }
         }
 
+        /// <summary>
+        /// get the first item from the queue
+        /// (item with the highest priority)
+        /// </summary>
+        /// <returns></returns>
         public T Get()
         {
             PrioritizedItem prioritizedItem = _queue[0];
@@ -100,6 +138,11 @@ namespace ADS_CinemaSeating
             return prioritizedItem.Item;
         }
 
+        /// <summary>
+        /// trim queue size to the given maxsize,
+        /// item at the back of the queue are trimmed first
+        /// </summary>
+        /// <param name="maxSize"></param>
         public void TrimQueueSize(int maxSize)
         {
             while (_queue.Count > maxSize)

@@ -30,6 +30,10 @@ namespace ADS_CinemaSeating.CinemaLayout
             }
         }
 
+        /// <summary>
+        /// get a copy of this cinema
+        /// </summary>
+        /// <returns></returns>
         public Cinema GetCopy()
         {
             Cinema copy = new Cinema(NrRows, NrCols);
@@ -56,6 +60,9 @@ namespace ADS_CinemaSeating.CinemaLayout
             return copy;
         }
 
+        /// <summary>
+        /// update the available seats lists for all rows
+        /// </summary>
         public void UpdateAvailableSeats()
         {
             for (int y = 0; y < NrRows; y++)
@@ -64,6 +71,11 @@ namespace ADS_CinemaSeating.CinemaLayout
             }
         }
         
+        /// <summary>
+        /// update available seats list for a given row
+        /// </summary>
+        /// <param name="rowIndex"></param>
+        /// <param name="updateIfEmpty">update list if it is empty</param>
         private void UpdateAvailableSeats(int rowIndex, bool updateIfEmpty = false)
         {
             if (!updateIfEmpty && _availableSeats[rowIndex].Count == 0)
@@ -94,6 +106,12 @@ namespace ADS_CinemaSeating.CinemaLayout
             }
         }
 
+        /// <summary>
+        /// set the seat type at a given row and column index
+        /// </summary>
+        /// <param name="rowIndex"></param>
+        /// <param name="colIndex"></param>
+        /// <param name="seatType"></param>
         public void SetSeat(int rowIndex, int colIndex, Seat seatType)
         {
             Layout[rowIndex, colIndex] = seatType;
@@ -107,6 +125,9 @@ namespace ADS_CinemaSeating.CinemaLayout
             }
         }
 
+        /// <summary>
+        /// print cinema to the console
+        /// </summary>
         public void PrintCinema()
         {
             Console.WriteLine();
@@ -135,6 +156,12 @@ namespace ADS_CinemaSeating.CinemaLayout
             Console.WriteLine();
         }
 
+        /// <summary>
+        /// place a group of the given size with the leftmost person at the row and column index
+        /// </summary>
+        /// <param name="rowIndex"></param>
+        /// <param name="colIndex"></param>
+        /// <param name="groupSize"></param>
         public void SetGroup(int rowIndex, int colIndex, int groupSize)
         {
             // mark seats as occupied
@@ -206,6 +233,11 @@ namespace ADS_CinemaSeating.CinemaLayout
             }
         }
 
+        /// <summary>
+        /// mark a seat at the given row and column index as unavailable
+        /// </summary>
+        /// <param name="rowIndex"></param>
+        /// <param name="colIndex"></param>
         private void MarkUnavailable(int rowIndex, int colIndex)
         {
             if (Layout[rowIndex, colIndex] == Seat.Empty)
@@ -215,12 +247,23 @@ namespace ADS_CinemaSeating.CinemaLayout
             }
         }
 
+        /// <summary>
+        /// mark one seat as unavailable at the given row and column index
+        /// and update the available seat list for that row
+        /// </summary>
+        /// <param name="rowIndex"></param>
+        /// <param name="colIndex"></param>
         public void MarkSeatAsUnused(int rowIndex, int colIndex)
         {
             MarkUnavailable(rowIndex, colIndex);
             UpdateAvailableSeats(rowIndex);
         }
 
+        /// <summary>
+        /// find the first group of adjacent available seats of size at least groupsize
+        /// </summary>
+        /// <param name="groupSize"></param>
+        /// <returns></returns>
         public (int rowIndex, int colIndex, int seatGroupSize) FindFirstSeating(int groupSize)
         {
             // check if enough seats are remaining
@@ -243,6 +286,12 @@ namespace ADS_CinemaSeating.CinemaLayout
             return (0, 0, 0);
         }
 
+        /// <summary>
+        /// find the group of adjacent available seats of at least size groupsize
+        /// which creates the least amount of new unavailable seats
+        /// </summary>
+        /// <param name="groupSize"></param>
+        /// <returns></returns>
         public (int rowIndex, int colIndex, int seatGroupSize) FindBestSeating(int groupSize)
         {
             // check if enough seats are remaining
@@ -290,6 +339,14 @@ namespace ADS_CinemaSeating.CinemaLayout
             return (0, 0, 0);
         }
 
+        /// <summary>
+        /// calculate the number of new unavailable seats if a group of size groupsize
+        /// were placed with the leftmost person at row and column index
+        /// </summary>
+        /// <param name="rowIndex"></param>
+        /// <param name="colIndex"></param>
+        /// <param name="groupSize"></param>
+        /// <returns></returns>
         private int CalculateNrNewUnavailableSeats(int rowIndex, int colIndex, int groupSize)
         {
             int total = 0;
