@@ -126,7 +126,7 @@ namespace ADS_CinemaSeating.CinemaLayout
         }
 
         /// <summary>
-        /// print cinema to the console
+        /// print cinema to the console, with unavailable seats as '+'
         /// </summary>
         public void PrintCinema()
         {
@@ -154,6 +154,33 @@ namespace ADS_CinemaSeating.CinemaLayout
                 Console.WriteLine();
             }
             Console.WriteLine();
+        }
+
+        /// <summary>
+        /// print cinema to the console in the required output format
+        /// </summary>
+        public void PrintOutput()
+        {
+            for (int y = 0; y < NrRows; y++)
+            {
+                for (int x = 0; x < NrCols; x++)
+                {
+                    switch (Layout[y, x])
+                    {
+                        case Seat.NoSeat:
+                            Console.Write('0');
+                            break;
+                        case Seat.Empty:
+                        case Seat.Unavailable:
+                            Console.Write('1');
+                            break;
+                        case Seat.Occupied:
+                            Console.Write('x');
+                            break;
+                    }
+                }
+                Console.WriteLine();
+            }
         }
 
         /// <summary>
